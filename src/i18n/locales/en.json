@@ -1,0 +1,140 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "close": "Close",
+    "refresh": "Refresh",
+    "search": "Search",
+    "noData": "No data available",
+    "copy": "Copy",
+    "copied": "Copied!",
+    "download": "Download",
+    "upload": "Upload"
+  },
+  "auth": {
+    "login": "Login",
+    "appTitle": "ZeroLimit",
+    "logout": "Logout",
+    "apiBase": "API Base URL",
+    "apiBasePlaceholder": "e.g., http://localhost:8317",
+    "managementKey": "Management Key",
+    "managementKeyPlaceholder": "Enter your management key",
+    "rememberMe": "Remember credentials",
+    "connecting": "Connecting...",
+    "connected": "Connected",
+    "disconnected": "Disconnected",
+    "connectionError": "Connection failed"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "settings": "Settings",
+    "apiKeys": "API Keys",
+    "authFiles": "Auth Files",
+    "oauth": "OAuth",
+    "quota": "Quota",
+    "usage": "Usage",
+    "config": "Config",
+    "logs": "Logs",
+    "system": "System",
+    "providers": "AI Providers",
+    "about": "About"
+  },
+  "providers": {
+    "title": "Providers",
+    "connectPrompt": "Connect to a ZeroLimit server to manage providers",
+    "connectedAccounts": "Connected Accounts",
+    "active": "Active",
+    "noAccounts": "No accounts connected",
+    "addProvider": "Add Provider",
+    "enterConfig": "Enter Configuration",
+    "connectionFailed": "Connection Failed",
+    "waitingAuth": "Waiting for authentication...",
+    "connecting": "Connecting...",
+    "googleProjectId": "Google Cloud Project ID",
+    "optional": "Optional",
+    "projectIdPlaceholder": "Leave blank to auto-select first available project",
+    "projectIdHelp": "Optional. If not provided, the system will automatically select the first available project from your account.",
+    "retryConnection": "Retry Connection",
+    "connect": "Connect",
+    "connectWithProject": "Connect with Project ID",
+    "autoSelect": "Auto-select Project",
+    "completeLogin": "Complete the login in your browser",
+    "openLink": "Open Link",
+    "verify": "Verify",
+    "manualCallback": "If valid callback is not detected automatically:"
+  },
+  "quota": {
+    "title": "Quota",
+    "loadQuota": "Load Quota",
+    "usage": "Usage",
+    "limit": "Limit",
+    "remaining": "Remaining",
+    "resetDate": "Reset Date",
+    "connectPrompt": "Connect to a CLIProxyApi server to view quota",
+    "refreshAll": "Refresh All",
+    "noCredentials": "No credential files found."
+  },
+  "settings": {
+    "title": "Settings",
+    "theme": "Theme",
+    "themeDesc": "Choose your preferred color theme",
+    "language": "Language",
+    "languageDesc": "Select your preferred language",
+    "dark": "Dark",
+    "light": "Light",
+    "system": "System"
+  },
+  "layout": {
+    "connected": "Connected",
+    "disconnected": "Disconnected"
+  },
+  "account": {
+    "title": "Account",
+    "manageSession": "Manage your session"
+  },
+  "quotaCard": {
+    "usage": "Usage",
+    "noUsage": "No usage data available",
+    "percentLeft": "{{percent}}% left",
+    "unknown": "Unknown"
+  },
+
+  "dashboard": {
+    "title": "Dashboard",
+    "connectionStatus": "Connection Status",
+    "serverVersion": "Server Version",
+    "buildDate": "Build Date",
+    "quickStats": "Quick Stats",
+    "totalRequests": "Total Requests",
+    "successRate": "Success Rate",
+    "activeFiles": "Active Files",
+    "totalAccounts": "Total Accounts",
+    "serverInfo": "CLIProxyApi Server Information",
+    "apiBaseUrl": "API Base URL",
+    "greeting": {
+      "morning": "Good morning",
+      "afternoon": "Good afternoon",
+      "evening": "Good evening"
+    },
+    "welcomeMessage": "Welcome back to your ZeroLimit dashboard.",
+    "systemStatus": "CLIProxyApi Status",
+    "status": {
+      "active": "Active",
+      "offline": "Offline",
+      "operational": "Operational",
+      "error": "Error"
+    },
+    "monitoringEnabled": "monitoring enabled",
+    "checkConnection": "check connection",
+    "server": {
+      "stable": "Stable",
+      "latestRelease": "latest release",
+      "port": "Port"
+    }
+  }
+}

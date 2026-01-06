@@ -1,0 +1,138 @@
+{
+  "common": {
+    "loading": "Memuat...",
+    "error": "Kesalahan",
+    "success": "Berhasil",
+    "save": "Simpan",
+    "cancel": "Batal",
+    "delete": "Hapus",
+    "confirm": "Konfirmasi",
+    "close": "Tutup",
+    "refresh": "Segarkan",
+    "search": "Cari",
+    "noData": "Tidak ada data",
+    "copy": "Salin",
+    "copied": "Disalin!",
+    "download": "Unduh",
+    "upload": "Unggah"
+  },
+  "auth": {
+    "login": "Masuk",
+    "logout": "Keluar",
+    "apiBase": "URL Dasar API",
+    "apiBasePlaceholder": "cth., http://localhost:8317",
+    "managementKey": "Kunci Manajemen",
+    "managementKeyPlaceholder": "Masukkan kunci manajemen Anda",
+    "rememberMe": "Ingat kredensial",
+    "connecting": "Menghubungkan...",
+    "connected": "Terhubung",
+    "disconnected": "Terputus",
+    "connectionError": "Koneksi gagal"
+  },
+  "nav": {
+    "dashboard": "Dasbor",
+    "settings": "Pengaturan",
+    "apiKeys": "Kunci API",
+    "authFiles": "Berkas Otentikasi",
+    "oauth": "OAuth",
+    "quota": "Kuota",
+    "usage": "Penggunaan",
+    "config": "Konfigurasi",
+    "logs": "Log",
+    "system": "Sistem",
+    "providers": "Penyedia AI"
+  },
+  "providers": {
+    "title": "Penyedia",
+    "connectPrompt": "Sambungkan ke server ZeroLimit untuk mengelola penyedia",
+    "connectedAccounts": "Akun Terhubung",
+    "active": "Aktif",
+    "noAccounts": "Tidak ada akun terhubung",
+    "addProvider": "Tambah Penyedia",
+    "enterConfig": "Masukkan Konfigurasi",
+    "connectionFailed": "Koneksi Gagal",
+    "waitingAuth": "Menunggu otentikasi...",
+    "connecting": "Menghubungkan...",
+    "googleProjectId": "ID Proyek Google Cloud",
+    "optional": "Opsional",
+    "projectIdPlaceholder": "Biarkan kosong untuk memilih otomatis proyek pertama",
+    "projectIdHelp": "Opsional. Jika tidak diisi, sistem akan otomatis memilih proyek pertama yang tersedia dari akun Anda.",
+    "retryConnection": "Coba Lagi Koneksi",
+    "connect": "Sambungkan",
+    "connectWithProject": "Sambungkan dengan ID Proyek",
+    "autoSelect": "Pilih Proyek Otomatis",
+    "completeLogin": "Selesaikan login di browser Anda",
+    "openLink": "Buka Tautan",
+    "verify": "Verifikasi",
+    "manualCallback": "Jika callback valid tidak terdeteksi otomatis:"
+  },
+  "quota": {
+    "title": "Kuota",
+    "loadQuota": "Muat Kuota",
+    "usage": "Penggunaan",
+    "limit": "Batas",
+    "remaining": "Tersisa",
+    "resetDate": "Tanggal Reset",
+    "connectPrompt": "Sambungkan ke server CLIProxyApi untuk melihat kuota",
+    "refreshAll": "Segarkan Semua",
+    "noCredentials": "Tidak ada berkas kredensial ditemukan."
+  },
+  "settings": {
+    "title": "Pengaturan",
+    "theme": "Tema",
+    "themeDesc": "Pilih tema warna yang Anda sukai",
+    "language": "Bahasa",
+    "languageDesc": "Pilih bahasa pilihan Anda",
+    "dark": "Gelap",
+    "light": "Terang",
+    "system": "Sistem"
+  },
+  "layout": {
+    "connected": "Terhubung",
+    "disconnected": "Terputus"
+  },
+  "account": {
+    "title": "Akun",
+    "manageSession": "Kelola sesi Anda"
+  },
+  "quotaCard": {
+    "usage": "Penggunaan",
+    "noUsage": "Data penggunaan tidak tersedia",
+    "percentLeft": "Tersisa {{percent}}%",
+    "unknown": "Tidak Diketahui"
+  },
+
+  "dashboard": {
+    "title": "Dasbor",
+    "connectionStatus": "Status Koneksi",
+    "serverVersion": "Versi Server",
+    "buildDate": "Tanggal Pembuatan",
+    "quickStats": "Statistik Cepat",
+    "totalRequests": "Total Permintaan",
+    "successRate": "Tingkat Keberhasilan",
+    "activeFiles": "Berkas Aktif",
+    "totalAccounts": "Total Akun",
+    "serverInfo": "Informasi Server CLIProxyApi",
+    "apiBaseUrl": "URL Dasar API",
+    "greeting": {
+      "morning": "Selamat pagi",
+      "afternoon": "Selamat siang",
+      "evening": "Selamat malam"
+    },
+    "welcomeMessage": "Selamat datang kembali di dasbor ZeroLimit Anda.",
+    "systemStatus": "Status CLIProxyApi",
+    "status": {
+      "active": "Aktif",
+      "offline": "Offline",
+      "operational": "Operasional",
+      "error": "Kesalahan"
+    },
+    "monitoringEnabled": "pemantauan aktif",
+    "checkConnection": "periksa koneksi",
+    "server": {
+      "stable": "Stabil",
+      "latestRelease": "rilis terbaru",
+      "port": "Port"
+    }
+  }
+}
