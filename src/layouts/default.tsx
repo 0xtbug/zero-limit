@@ -14,8 +14,7 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 import { useAuthStore } from '@/stores'
-import { useInterval } from '@/hooks'
-import { APP_VERSION } from '@/utils/constants'
+import { useInterval, useAppVersion } from '@/hooks'
 
 const navItems = [
   { path: '/dashboard', icon: LayoutDashboard, labelKey: 'nav.dashboard' },
@@ -31,6 +30,7 @@ function Default({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [isCollapsed, setIsCollapsed] = useState(false)
   const { checkAuth } = useAuthStore()
+  const version = useAppVersion()
 
   // Real-time connection check every 5 seconds
   useInterval(() => {
@@ -115,7 +115,7 @@ function Default({ children }: { children: React.ReactNode }) {
             ) : (
               <div className="flex items-center gap-2 px-2">
                 <span className="text-sm font-medium text-muted-foreground">
-                  v{APP_VERSION}
+                  v{version}
                 </span>
               </div>
             )}

@@ -1,0 +1,139 @@
+{
+  "common": {
+    "loading": "กำลังโหลด...",
+    "error": "ข้อผิดพลาด",
+    "success": "สำเร็จ",
+    "save": "บันทึก",
+    "cancel": "ยกเลิก",
+    "delete": "ลบ",
+    "confirm": "ยืนยัน",
+    "close": "ปิด",
+    "refresh": "รีเฟรช",
+    "search": "ค้นหา",
+    "noData": "ไม่มีข้อมูลให้แสดง",
+    "copy": "คัดลอก",
+    "copied": "คัดลอกแล้ว!",
+    "download": "ดาวน์โหลด",
+    "upload": "อัปโหลด"
+  },
+  "auth": {
+    "login": "เข้าสู่ระบบ",
+    "appTitle": "ZeroLimit",
+    "logout": "ออกจากระบบ",
+    "apiBase": "API Base URL",
+    "apiBasePlaceholder": "เช่น http://localhost:8317",
+    "managementKey": "คีย์การจัดการ",
+    "managementKeyPlaceholder": "กรอกคีย์การจัดการของคุณ",
+    "rememberMe": "จดจำข้อมูลการเข้าสู่ระบบ",
+    "connecting": "กำลังเชื่อมต่อ...",
+    "connected": "เชื่อมต่อแล้ว",
+    "disconnected": "ตัดการเชื่อมต่อแล้ว",
+    "connectionError": "การเชื่อมต่อล้มเหลว"
+  },
+  "nav": {
+    "dashboard": "แดชบอร์ด",
+    "settings": "การตั้งค่า",
+    "apiKeys": "คีย์ API",
+    "authFiles": "ไฟล์ยืนยันตัวตน",
+    "oauth": "OAuth",
+    "quota": "โควตา",
+    "usage": "การใช้งาน",
+    "config": "การกำหนดค่า",
+    "logs": "บันทึก",
+    "system": "ระบบ",
+    "providers": "ผู้ให้บริการ AI",
+    "about": "เกี่ยวกับ"
+  },
+  "providers": {
+    "title": "ผู้ให้บริการ",
+    "connectPrompt": "เชื่อมต่อกับเซิร์ฟเวอร์ ZeroLimit เพื่อจัดการผู้ให้บริการ",
+    "connectedAccounts": "บัญชีที่เชื่อมต่อแล้ว",
+    "active": "ใช้งานอยู่",
+    "noAccounts": "ไม่มีบัญชีที่เชื่อมต่อ",
+    "addProvider": "เพิ่มผู้ให้บริการ",
+    "enterConfig": "กรอกการตั้งค่า",
+    "connectionFailed": "การเชื่อมต่อล้มเหลว",
+    "waitingAuth": "กำลังรอการยืนยันตัวตน...",
+    "connecting": "กำลังเชื่อมต่อ...",
+    "googleProjectId": "Google Cloud Project ID",
+    "optional": "ไม่บังคับ",
+    "projectIdPlaceholder": "เว้นว่างเพื่อเลือกโปรเจกต์แรกที่พร้อมใช้งานโดยอัตโนมัติ",
+    "projectIdHelp": "ไม่บังคับ หากไม่ระบุ ระบบจะเลือกโปรเจกต์แรกที่พร้อมใช้งานจากบัญชีของคุณโดยอัตโนมัติ",
+    "retryConnection": "ลองเชื่อมต่อใหม่",
+    "connect": "เชื่อมต่อ",
+    "connectWithProject": "เชื่อมต่อด้วย Project ID",
+    "autoSelect": "เลือกโปรเจกต์อัตโนมัติ",
+    "completeLogin": "กรุณาเข้าสู่ระบบให้เสร็จสิ้นในเบราว์เซอร์",
+    "openLink": "เปิดลิงก์",
+    "verify": "ตรวจสอบ",
+    "manualCallback": "หากระบบไม่ตรวจพบ callback ที่ถูกต้องโดยอัตโนมัติ:"
+  },
+  "quota": {
+    "title": "โควตา",
+    "loadQuota": "โหลดโควตา",
+    "usage": "การใช้งาน",
+    "limit": "ขีดจำกัด",
+    "remaining": "คงเหลือ",
+    "resetDate": "วันที่รีเซ็ต",
+    "connectPrompt": "เชื่อมต่อกับเซิร์ฟเวอร์ CLIProxyApi เพื่อดูโควตา",
+    "refreshAll": "รีเฟรชทั้งหมด",
+    "noCredentials": "ไม่พบไฟล์ข้อมูลรับรอง"
+  },
+  "settings": {
+    "title": "การตั้งค่า",
+    "theme": "ธีม",
+    "themeDesc": "เลือกธีมสีที่คุณต้องการ",
+    "language": "ภาษา",
+    "languageDesc": "เลือกภาษาที่คุณต้องการ",
+    "dark": "มืด",
+    "light": "สว่าง",
+    "system": "ระบบ"
+  },
+  "layout": {
+    "connected": "เชื่อมต่อแล้ว",
+    "disconnected": "ตัดการเชื่อมต่อแล้ว"
+  },
+  "account": {
+    "title": "บัญชี",
+    "manageSession": "จัดการเซสชันของคุณ"
+  },
+  "quotaCard": {
+    "usage": "การใช้งาน",
+    "noUsage": "ไม่มีข้อมูลการใช้งาน",
+    "percentLeft": "เหลือ {{percent}}%",
+    "unknown": "ไม่ทราบ"
+  },
+  "dashboard": {
+    "title": "แดชบอร์ด",
+    "connectionStatus": "สถานะการเชื่อมต่อ",
+    "serverVersion": "เวอร์ชันเซิร์ฟเวอร์",
+    "buildDate": "วันที่สร้าง",
+    "quickStats": "สถิติด่วน",
+    "totalRequests": "จำนวนคำขอทั้งหมด",
+    "successRate": "อัตราความสำเร็จ",
+    "activeFiles": "ไฟล์ที่ใช้งานอยู่",
+    "totalAccounts": "จำนวนบัญชีทั้งหมด",
+    "serverInfo": "ข้อมูลเซิร์ฟเวอร์ CLIProxyApi",
+    "apiBaseUrl": "API Base URL",
+    "greeting": {
+      "morning": "สวัสดีตอนเช้า",
+      "afternoon": "สวัสดีตอนบ่าย",
+      "evening": "สวัสดีตอนเย็น"
+    },
+    "welcomeMessage": "ยินดีต้อนรับกลับสู่แดชบอร์ด ZeroLimit ของคุณ",
+    "systemStatus": "สถานะ CLIProxyApi",
+    "status": {
+      "active": "ใช้งานอยู่",
+      "offline": "ออฟไลน์",
+      "operational": "ทำงานปกติ",
+      "error": "ข้อผิดพลาด"
+    },
+    "monitoringEnabled": "เปิดใช้งานการตรวจสอบ",
+    "checkConnection": "ตรวจสอบการเชื่อมต่อ",
+    "server": {
+      "stable": "เสถียร",
+      "latestRelease": "รีลีสล่าสุด",
+      "port": "พอร์ต"
+    }
+  }
+}
