@@ -37,7 +37,7 @@
   },
   "plugins": {
     "updater": {
-      "pubkey": "REPLACE_WITH_YOUR_PUBLIC_KEY",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDdBMTkyRDU2NjBDNTcyNkQKUldSdGNzVmdWaTBaZXVuWXlkenZyNHJrUzRyYk4vOTFnRkpBWllyWXhHeUllUXhlL0VMMTcvcmcK",
       "endpoints": [
         "https://github.com/0xtbug/zero-limit/releases/latest/download/latest.json"
       ]

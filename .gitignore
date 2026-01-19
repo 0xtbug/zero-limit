@@ -27,3 +27,8 @@ dist-ssr
 #
 pnpm-lock.yaml
 Cargo.lock
+
+# Tauri signing keys
+~/.tauri/
+*.key
+*.key.pub

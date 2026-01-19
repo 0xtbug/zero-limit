@@ -3,11 +3,13 @@
  */
 
 import { useTranslation } from 'react-i18next';
-import { useThemeStore, useLanguageStore, useAuthStore, useCliProxyStore } from '@/stores';
+import { useThemeStore, useLanguageStore, useAuthStore, useCliProxyStore, useUpdateStore } from '@/stores';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Sun, Moon, Monitor, LogOut, Globe, Server, FolderOpen, Play, Square, CheckCircle2 } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { Sun, Moon, Monitor, LogOut, Globe, Server, FolderOpen, Play, Square, CheckCircle2, Download, RefreshCw, Loader2 } from 'lucide-react';
+import { APP_VERSION } from '@/utils/constants';
 
 export function SettingsPage() {
   const { t } = useTranslation();
@@ -15,6 +17,7 @@ export function SettingsPage() {
   const { language, setLanguage } = useLanguageStore();
   const { logout } = useAuthStore();
   const { exePath, autoStart, runInBackground, isServerRunning, setAutoStart, setRunInBackground, browseForExe, startServer, stopServer } = useCliProxyStore();
+  const { status, updateInfo, downloadProgress, error, checkForUpdates, downloadAndInstall } = useUpdateStore();
 
   const themeOptions = [
     { value: 'light', label: t('settings.light'), icon: Sun },
@@ -33,6 +36,87 @@ export function SettingsPage() {
       <div>
         <h1 className="text-3xl font-bold">{t('settings.title')}</h1>
       </div>
+
+      {/* Updates Card */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Download className="h-5 w-5" />
+            Updates
+          </CardTitle>
+          <CardDescription>Check for new versions and install updates</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Current Version */}
+          <div className="flex items-center justify-between">
+            <div>
+              <Label>Current Version</Label>
+              <p className="text-sm text-muted-foreground">v{APP_VERSION}</p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={checkForUpdates}
+              disabled={status === 'checking' || status === 'downloading'}
+            >
+              {status === 'checking' ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Checking...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Check for Updates
+                </>
+              )}
+            </Button>
+          </div>
+
+          {/* Update Available */}
+          {status === 'available' && updateInfo && (
+            <div className="rounded-lg border bg-muted/50 p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium text-green-600 dark:text-green-400">
+                    Update Available: v{updateInfo.version}
+                  </p>
+                  {updateInfo.body && (
+                    <p className="text-sm text-muted-foreground mt-1">{updateInfo.body}</p>
+                  )}
+                </div>
+                <Button size="sm" onClick={downloadAndInstall}>
+                  <Download className="mr-2 h-4 w-4" />
+                  Download & Install
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Downloading */}
+          {status === 'downloading' && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span>Downloading update...</span>
+                <span>{downloadProgress}%</span>
+              </div>
+              <Progress value={downloadProgress} />
+            </div>
+          )}
+
+          {/* No Update */}
+          {status === 'idle' && updateInfo === null && (
+            <p className="text-sm text-muted-foreground">
+              You're up to date!
+            </p>
+          )}
+
+          {/* Error */}
+          {status === 'error' && error && (
+            <p className="text-sm text-red-500">{error}</p>
+          )}
+        </CardContent>
+      </Card>
 
       {/* CLI Proxy Settings */}
       <Card>
