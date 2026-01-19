@@ -76,6 +76,7 @@ jobs:
         run: pnpm tauri build --target x86_64-pc-windows-msvc
 
       - name: Prepare portable executable
+        shell: bash
         run: |
           VERSION="${{ needs.create-release.outputs.version }}"
           cp src-tauri/target/x86_64-pc-windows-msvc/release/ZeroLimit.exe "ZeroLimit_${VERSION}_portable.exe"
@@ -132,6 +133,7 @@ jobs:
         run: pnpm tauri build --target aarch64-pc-windows-msvc
 
       - name: Prepare portable executable
+        shell: bash
         run: |
           VERSION="${{ needs.create-release.outputs.version }}"
           cp src-tauri/target/aarch64-pc-windows-msvc/release/ZeroLimit.exe "ZeroLimit_${VERSION}_arm64_portable.exe"
