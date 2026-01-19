@@ -92,6 +92,12 @@ jobs:
             src-tauri/target/x86_64-pc-windows-msvc/release/bundle/msi/*.msi.sig
             ZeroLimit_*_portable.exe
 
+      - name: Upload signatures for latest.json
+        uses: actions/upload-artifact@v4
+        with:
+          name: signatures-x64
+          path: src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.sig
+
   build-windows-arm64:
     needs: create-release
     runs-on: windows-latest
@@ -149,6 +155,12 @@ jobs:
             src-tauri/target/aarch64-pc-windows-msvc/release/bundle/msi/*.msi.sig
             ZeroLimit_*_portable.exe
 
+      - name: Upload signatures for latest.json
+        uses: actions/upload-artifact@v4
+        with:
+          name: signatures-arm64
+          path: src-tauri/target/aarch64-pc-windows-msvc/release/bundle/nsis/*.sig
+
   publish-release:
     needs: [create-release, build-windows-x64, build-windows-arm64]
     runs-on: ubuntu-latest
@@ -156,12 +168,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download release assets
-        uses: robinraju/release-downloader@v1
+      - name: Download signatures
+        uses: actions/download-artifact@v4
         with:
-          tag: v${{ needs.create-release.outputs.version }}
-          fileName: "*.sig"
-          out-file-path: signatures
+          pattern: signatures-*
+          merge-multiple: true
+          path: signatures
 
       - name: Generate latest.json
         run: |
