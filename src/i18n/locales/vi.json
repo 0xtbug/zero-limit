@@ -1,0 +1,139 @@
+{
+  "common": {
+    "loading": "Đang tải...",
+    "error": "Lỗi",
+    "success": "Thành công",
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "delete": "Xóa",
+    "confirm": "Xác nhận",
+    "close": "Đóng",
+    "refresh": "Làm mới",
+    "search": "Tìm kiếm",
+    "noData": "Không có dữ liệu",
+    "copy": "Sao chép",
+    "copied": "Đã sao chép!",
+    "download": "Tải xuống",
+    "upload": "Tải lên"
+  },
+  "auth": {
+    "login": "Đăng nhập",
+    "appTitle": "ZeroLimit",
+    "logout": "Đăng xuất",
+    "apiBase": "API Base URL",
+    "apiBasePlaceholder": "Ví dụ: http://localhost:8317",
+    "managementKey": "Khóa quản lý",
+    "managementKeyPlaceholder": "Nhập khóa quản lý của bạn",
+    "rememberMe": "Ghi nhớ thông tin đăng nhập",
+    "connecting": "Đang kết nối...",
+    "connected": "Đã kết nối",
+    "disconnected": "Đã ngắt kết nối",
+    "connectionError": "Kết nối thất bại"
+  },
+  "nav": {
+    "dashboard": "Bảng điều khiển",
+    "settings": "Cài đặt",
+    "apiKeys": "Khóa API",
+    "authFiles": "Tệp xác thực",
+    "oauth": "OAuth",
+    "quota": "Hạn mức",
+    "usage": "Mức sử dụng",
+    "config": "Cấu hình",
+    "logs": "Nhật ký",
+    "system": "Hệ thống",
+    "providers": "Nhà cung cấp AI",
+    "about": "Giới thiệu"
+  },
+  "providers": {
+    "title": "Nhà cung cấp",
+    "connectPrompt": "Kết nối tới máy chủ ZeroLimit để quản lý nhà cung cấp",
+    "connectedAccounts": "Tài khoản đã kết nối",
+    "active": "Đang hoạt động",
+    "noAccounts": "Không có tài khoản nào được kết nối",
+    "addProvider": "Thêm nhà cung cấp",
+    "enterConfig": "Nhập cấu hình",
+    "connectionFailed": "Kết nối thất bại",
+    "waitingAuth": "Đang chờ xác thực...",
+    "connecting": "Đang kết nối...",
+    "googleProjectId": "Google Cloud Project ID",
+    "optional": "Tùy chọn",
+    "projectIdPlaceholder": "Để trống để tự động chọn dự án khả dụng đầu tiên",
+    "projectIdHelp": "Tùy chọn. Nếu không cung cấp, hệ thống sẽ tự động chọn dự án khả dụng đầu tiên từ tài khoản của bạn.",
+    "retryConnection": "Thử kết nối lại",
+    "connect": "Kết nối",
+    "connectWithProject": "Kết nối bằng Project ID",
+    "autoSelect": "Tự động chọn dự án",
+    "completeLogin": "Hoàn tất đăng nhập trong trình duyệt của bạn",
+    "openLink": "Mở liên kết",
+    "verify": "Xác minh",
+    "manualCallback": "Nếu không tự động phát hiện callback hợp lệ:"
+  },
+  "quota": {
+    "title": "Hạn mức",
+    "loadQuota": "Tải hạn mức",
+    "usage": "Mức sử dụng",
+    "limit": "Giới hạn",
+    "remaining": "Còn lại",
+    "resetDate": "Ngày đặt lại",
+    "connectPrompt": "Kết nối tới máy chủ CLIProxyApi để xem hạn mức",
+    "refreshAll": "Làm mới tất cả",
+    "noCredentials": "Không tìm thấy tệp thông tin xác thực."
+  },
+  "settings": {
+    "title": "Cài đặt",
+    "theme": "Giao diện",
+    "themeDesc": "Chọn giao diện màu bạn ưa thích",
+    "language": "Ngôn ngữ",
+    "languageDesc": "Chọn ngôn ngữ bạn muốn sử dụng",
+    "dark": "Tối",
+    "light": "Sáng",
+    "system": "Hệ thống"
+  },
+  "layout": {
+    "connected": "Đã kết nối",
+    "disconnected": "Đã ngắt kết nối"
+  },
+  "account": {
+    "title": "Tài khoản",
+    "manageSession": "Quản lý phiên của bạn"
+  },
+  "quotaCard": {
+    "usage": "Mức sử dụng",
+    "noUsage": "Không có dữ liệu sử dụng",
+    "percentLeft": "Còn lại {{percent}}%",
+    "unknown": "Không xác định"
+  },
+  "dashboard": {
+    "title": "Bảng điều khiển",
+    "connectionStatus": "Trạng thái kết nối",
+    "serverVersion": "Phiên bản máy chủ",
+    "buildDate": "Ngày build",
+    "quickStats": "Thống kê nhanh",
+    "totalRequests": "Tổng số yêu cầu",
+    "successRate": "Tỷ lệ thành công",
+    "activeFiles": "Tệp đang hoạt động",
+    "totalAccounts": "Tổng số tài khoản",
+    "serverInfo": "Thông tin máy chủ CLIProxyApi",
+    "apiBaseUrl": "API Base URL",
+    "greeting": {
+      "morning": "Chào buổi sáng",
+      "afternoon": "Chào buổi chiều",
+      "evening": "Chào buổi tối"
+    },
+    "welcomeMessage": "Chào mừng bạn quay lại bảng điều khiển ZeroLimit.",
+    "systemStatus": "Trạng thái CLIProxyApi",
+    "status": {
+      "active": "Đang hoạt động",
+      "offline": "Ngoại tuyến",
+      "operational": "Hoạt động bình thường",
+      "error": "Lỗi"
+    },
+    "monitoringEnabled": "đã bật giám sát",
+    "checkConnection": "kiểm tra kết nối",
+    "server": {
+      "stable": "Ổn định",
+      "latestRelease": "bản phát hành mới nhất",
+      "port": "Cổng"
+    }
+  }
+}

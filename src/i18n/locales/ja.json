@@ -1,0 +1,139 @@
+{
+  "common": {
+    "loading": "読み込み中...",
+    "error": "エラー",
+    "success": "成功",
+    "save": "保存",
+    "cancel": "キャンセル",
+    "delete": "削除",
+    "confirm": "確認",
+    "close": "閉じる",
+    "refresh": "更新",
+    "search": "検索",
+    "noData": "利用可能なデータがありません",
+    "copy": "コピー",
+    "copied": "コピーしました！",
+    "download": "ダウンロード",
+    "upload": "アップロード"
+  },
+  "auth": {
+    "login": "ログイン",
+    "appTitle": "ZeroLimit",
+    "logout": "ログアウト",
+    "apiBase": "API ベースURL",
+    "apiBasePlaceholder": "例: http://localhost:8317",
+    "managementKey": "管理キー",
+    "managementKeyPlaceholder": "管理キーを入力してください",
+    "rememberMe": "認証情報を記憶する",
+    "connecting": "接続中...",
+    "connected": "接続済み",
+    "disconnected": "未接続",
+    "connectionError": "接続に失敗しました"
+  },
+  "nav": {
+    "dashboard": "ダッシュボード",
+    "settings": "設定",
+    "apiKeys": "APIキー",
+    "authFiles": "認証ファイル",
+    "oauth": "OAuth",
+    "quota": "クォータ",
+    "usage": "使用状況",
+    "config": "設定",
+    "logs": "ログ",
+    "system": "システム",
+    "providers": "AIプロバイダー",
+    "about": "情報"
+  },
+  "providers": {
+    "title": "プロバイダー",
+    "connectPrompt": "ZeroLimitサーバーに接続してプロバイダーを管理してください",
+    "connectedAccounts": "接続済みアカウント",
+    "active": "有効",
+    "noAccounts": "接続されたアカウントはありません",
+    "addProvider": "プロバイダーを追加",
+    "enterConfig": "設定を入力",
+    "connectionFailed": "接続に失敗しました",
+    "waitingAuth": "認証を待機中...",
+    "connecting": "接続中...",
+    "googleProjectId": "Google Cloud プロジェクトID",
+    "optional": "任意",
+    "projectIdPlaceholder": "空欄の場合、最初に利用可能なプロジェクトを自動選択します",
+    "projectIdHelp": "任意。指定しない場合、アカウント内で最初に利用可能なプロジェクトが自動的に選択されます。",
+    "retryConnection": "再接続",
+    "connect": "接続",
+    "connectWithProject": "プロジェクトIDで接続",
+    "autoSelect": "プロジェクトを自動選択",
+    "completeLogin": "ブラウザでログインを完了してください",
+    "openLink": "リンクを開く",
+    "verify": "確認",
+    "manualCallback": "有効なコールバックが自動検出されない場合:"
+  },
+  "quota": {
+    "title": "クォータ",
+    "loadQuota": "クォータを読み込む",
+    "usage": "使用量",
+    "limit": "上限",
+    "remaining": "残り",
+    "resetDate": "リセット日",
+    "connectPrompt": "CLIProxyApiサーバーに接続してクォータを確認してください",
+    "refreshAll": "すべて更新",
+    "noCredentials": "認証ファイルが見つかりません。"
+  },
+  "settings": {
+    "title": "設定",
+    "theme": "テーマ",
+    "themeDesc": "好みのカラーテーマを選択してください",
+    "language": "言語",
+    "languageDesc": "使用する言語を選択してください",
+    "dark": "ダーク",
+    "light": "ライト",
+    "system": "システム"
+  },
+  "layout": {
+    "connected": "接続済み",
+    "disconnected": "未接続"
+  },
+  "account": {
+    "title": "アカウント",
+    "manageSession": "セッションを管理"
+  },
+  "quotaCard": {
+    "usage": "使用量",
+    "noUsage": "使用データがありません",
+    "percentLeft": "残り {{percent}}%",
+    "unknown": "不明"
+  },
+  "dashboard": {
+    "title": "ダッシュボード",
+    "connectionStatus": "接続状態",
+    "serverVersion": "サーバーバージョン",
+    "buildDate": "ビルド日時",
+    "quickStats": "クイック統計",
+    "totalRequests": "総リクエスト数",
+    "successRate": "成功率",
+    "activeFiles": "アクティブなファイル",
+    "totalAccounts": "総アカウント数",
+    "serverInfo": "CLIProxyApi サーバー情報",
+    "apiBaseUrl": "API ベースURL",
+    "greeting": {
+      "morning": "おはようございます",
+      "afternoon": "こんにちは",
+      "evening": "こんばんは"
+    },
+    "welcomeMessage": "ZeroLimit ダッシュボードへようこそ。",
+    "systemStatus": "CLIProxyApi ステータス",
+    "status": {
+      "active": "有効",
+      "offline": "オフライン",
+      "operational": "正常稼働",
+      "error": "エラー"
+    },
+    "monitoringEnabled": "監視が有効です",
+    "checkConnection": "接続を確認",
+    "server": {
+      "stable": "安定版",
+      "latestRelease": "最新リリース",
+      "port": "ポート"
+    }
+  }
+}

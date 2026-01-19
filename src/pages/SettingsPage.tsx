@@ -26,6 +26,10 @@ export function SettingsPage() {
     { value: 'en', label: 'English' },
     { value: 'zh-CN', label: '中文' },
     { value: 'id', label: 'Indonesia' },
+    { value: 'ja', label: '日本語' },
+    { value: 'ko', label: '한국어' },
+    { value: 'vi', label: 'Tiếng Việt' },
+    { value: 'th', label: 'ไทย' },
   ] as const;
 
   return (
@@ -171,7 +175,7 @@ export function SettingsPage() {
           <CardDescription>{t('settings.languageDesc')}</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             {languageOptions.map((option) => (
               <Button
                 key={option.value}

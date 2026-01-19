@@ -1,0 +1,139 @@
+{
+  "common": {
+    "loading": "로딩 중...",
+    "error": "오류",
+    "success": "성공",
+    "save": "저장",
+    "cancel": "취소",
+    "delete": "삭제",
+    "confirm": "확인",
+    "close": "닫기",
+    "refresh": "새로고침",
+    "search": "검색",
+    "noData": "사용 가능한 데이터가 없습니다",
+    "copy": "복사",
+    "copied": "복사되었습니다!",
+    "download": "다운로드",
+    "upload": "업로드"
+  },
+  "auth": {
+    "login": "로그인",
+    "appTitle": "ZeroLimit",
+    "logout": "로그아웃",
+    "apiBase": "API 기본 URL",
+    "apiBasePlaceholder": "예: http://localhost:8317",
+    "managementKey": "관리 키",
+    "managementKeyPlaceholder": "관리 키를 입력하세요",
+    "rememberMe": "자격 증명 저장",
+    "connecting": "연결 중...",
+    "connected": "연결됨",
+    "disconnected": "연결 끊김",
+    "connectionError": "연결에 실패했습니다"
+  },
+  "nav": {
+    "dashboard": "대시보드",
+    "settings": "설정",
+    "apiKeys": "API 키",
+    "authFiles": "인증 파일",
+    "oauth": "OAuth",
+    "quota": "할당량",
+    "usage": "사용량",
+    "config": "설정",
+    "logs": "로그",
+    "system": "시스템",
+    "providers": "AI 제공자",
+    "about": "정보"
+  },
+  "providers": {
+    "title": "제공자",
+    "connectPrompt": "ZeroLimit 서버에 연결하여 제공자를 관리하세요",
+    "connectedAccounts": "연결된 계정",
+    "active": "활성",
+    "noAccounts": "연결된 계정이 없습니다",
+    "addProvider": "제공자 추가",
+    "enterConfig": "설정 입력",
+    "connectionFailed": "연결 실패",
+    "waitingAuth": "인증 대기 중...",
+    "connecting": "연결 중...",
+    "googleProjectId": "Google Cloud 프로젝트 ID",
+    "optional": "선택 사항",
+    "projectIdPlaceholder": "비워두면 사용 가능한 첫 번째 프로젝트를 자동 선택합니다",
+    "projectIdHelp": "선택 사항입니다. 지정하지 않으면 계정에서 사용 가능한 첫 번째 프로젝트가 자동으로 선택됩니다.",
+    "retryConnection": "연결 재시도",
+    "connect": "연결",
+    "connectWithProject": "프로젝트 ID로 연결",
+    "autoSelect": "프로젝트 자동 선택",
+    "completeLogin": "브라우저에서 로그인을 완료하세요",
+    "openLink": "링크 열기",
+    "verify": "확인",
+    "manualCallback": "유효한 콜백이 자동으로 감지되지 않는 경우:"
+  },
+  "quota": {
+    "title": "할당량",
+    "loadQuota": "할당량 불러오기",
+    "usage": "사용량",
+    "limit": "한도",
+    "remaining": "남은 양",
+    "resetDate": "초기화 날짜",
+    "connectPrompt": "CLIProxyApi 서버에 연결하여 할당량을 확인하세요",
+    "refreshAll": "모두 새로고침",
+    "noCredentials": "인증 파일을 찾을 수 없습니다."
+  },
+  "settings": {
+    "title": "설정",
+    "theme": "테마",
+    "themeDesc": "선호하는 색상 테마를 선택하세요",
+    "language": "언어",
+    "languageDesc": "사용할 언어를 선택하세요",
+    "dark": "다크",
+    "light": "라이트",
+    "system": "시스템"
+  },
+  "layout": {
+    "connected": "연결됨",
+    "disconnected": "연결 끊김"
+  },
+  "account": {
+    "title": "계정",
+    "manageSession": "세션 관리"
+  },
+  "quotaCard": {
+    "usage": "사용량",
+    "noUsage": "사용 데이터가 없습니다",
+    "percentLeft": "남은 비율 {{percent}}%",
+    "unknown": "알 수 없음"
+  },
+  "dashboard": {
+    "title": "대시보드",
+    "connectionStatus": "연결 상태",
+    "serverVersion": "서버 버전",
+    "buildDate": "빌드 날짜",
+    "quickStats": "빠른 통계",
+    "totalRequests": "총 요청 수",
+    "successRate": "성공률",
+    "activeFiles": "활성 파일",
+    "totalAccounts": "총 계정 수",
+    "serverInfo": "CLIProxyApi 서버 정보",
+    "apiBaseUrl": "API 기본 URL",
+    "greeting": {
+      "morning": "좋은 아침입니다",
+      "afternoon": "안녕하세요",
+      "evening": "좋은 저녁입니다"
+    },
+    "welcomeMessage": "ZeroLimit 대시보드에 다시 오신 것을 환영합니다.",
+    "systemStatus": "CLIProxyApi 상태",
+    "status": {
+      "active": "활성",
+      "offline": "오프라인",
+      "operational": "정상 작동",
+      "error": "오류"
+    },
+    "monitoringEnabled": "모니터링 활성화됨",
+    "checkConnection": "연결 확인",
+    "server": {
+      "stable": "안정 버전",
+      "latestRelease": "최신 릴리스",
+      "port": "포트"
+    }
+  }
+}

@@ -4,7 +4,7 @@
 
 import { STORAGE_KEY_LANGUAGE } from './constants';
 
-const SUPPORTED_LANGUAGES = ['en', 'zh-CN', 'id'] as const;
+const SUPPORTED_LANGUAGES = ['en', 'zh-CN', 'id', 'ja', 'vi', 'th', 'ko'] as const;
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
 
 /**
@@ -21,6 +21,17 @@ export function getInitialLanguage(): SupportedLanguage {
   // Check browser language
   if (typeof navigator !== 'undefined') {
     const browserLang = navigator.language;
+
+    // Exact match or prefix match
+    if (SUPPORTED_LANGUAGES.includes(browserLang as SupportedLanguage)) {
+      return browserLang as SupportedLanguage;
+    }
+
+    const prefix = browserLang.split('-')[0];
+    if (['id', 'ja', 'vi', 'th', 'ko'].includes(prefix)) {
+        return prefix as SupportedLanguage;
+    }
+
     if (browserLang.startsWith('zh')) {
       return 'zh-CN';
     }

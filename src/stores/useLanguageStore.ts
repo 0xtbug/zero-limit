@@ -6,8 +6,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import i18n from '@/i18n';
 import { STORAGE_KEY_LANGUAGE } from '@/utils/constants';
-
-type SupportedLanguage = 'en' | 'zh-CN' | 'id';
+import { SupportedLanguage } from '@/utils/language';
 
 interface LanguageState {
   language: SupportedLanguage;
