@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useUpdateStore } from '@/stores';
 import { useAppVersion } from '@/hooks';
-import { User, Github, ExternalLink, RefreshCw, Download, Loader2 } from 'lucide-react';
+import { User, Github, ExternalLink, RefreshCw, Download, Loader2, CheckCircle2 } from 'lucide-react';
 import { open } from '@tauri-apps/plugin-shell';
 
 export function AboutPage() {
@@ -56,6 +56,14 @@ export function AboutPage() {
               </>
             )}
           </Button>
+        )}
+
+        {/* Up to date message */}
+        {status === 'uptodate' && (
+          <div className="flex items-center justify-center gap-2 text-green-600 dark:text-green-500 animate-in fade-in slide-in-from-top-1 duration-300 py-2">
+            <CheckCircle2 className="h-4 w-4" />
+            <span className="text-sm font-medium">You are using the latest version.</span>
+          </div>
         )}
 
         {/* Update Available */}
