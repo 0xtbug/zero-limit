@@ -79,7 +79,7 @@ jobs:
         shell: bash
         run: |
           VERSION="${{ needs.create-release.outputs.version }}"
-          cp src-tauri/target/x86_64-pc-windows-msvc/release/ZeroLimit.exe "ZeroLimit_${VERSION}_portable.exe"
+          cp src-tauri/target/x86_64-pc-windows-msvc/release/zero-limit.exe "ZeroLimit_${VERSION}_portable.exe"
 
       - name: Upload artifacts to release
         uses: softprops/action-gh-release@v2
@@ -136,7 +136,7 @@ jobs:
         shell: bash
         run: |
           VERSION="${{ needs.create-release.outputs.version }}"
-          cp src-tauri/target/aarch64-pc-windows-msvc/release/ZeroLimit.exe "ZeroLimit_${VERSION}_arm64_portable.exe"
+          cp src-tauri/target/aarch64-pc-windows-msvc/release/zero-limit.exe "ZeroLimit_${VERSION}_arm64_portable.exe"
 
       - name: Upload artifacts to release
         uses: softprops/action-gh-release@v2
