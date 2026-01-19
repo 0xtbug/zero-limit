@@ -7,7 +7,7 @@ import { create } from 'zustand';
 import { check, Update } from '@tauri-apps/plugin-updater';
 import { relaunch } from '@tauri-apps/plugin-process';
 
-type UpdateStatus = 'idle' | 'checking' | 'available' | 'downloading' | 'ready' | 'error';
+type UpdateStatus = 'idle' | 'checking' | 'available' | 'downloading' | 'ready' | 'error' | 'uptodate';
 
 interface UpdateInfo {
   version: string;
@@ -57,7 +57,7 @@ export const useUpdateStore = create<UpdateState & UpdateActions>((set, get) => 
           pendingUpdate: update,
         });
       } else {
-        set({ status: 'idle', updateInfo: null });
+        set({ status: 'uptodate', updateInfo: null });
       }
     } catch (error) {
       set({

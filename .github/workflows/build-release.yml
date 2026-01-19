@@ -182,8 +182,9 @@ jobs:
           DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
           # Read signature files
-          X64_SIG=$(cat signatures/*x64*.exe.sig 2>/dev/null || echo "")
-          ARM64_SIG=$(cat signatures/*arm64*.exe.sig 2>/dev/null || echo "")
+          # Use specific version to avoid matching multiple files if present
+          X64_SIG=$(cat signatures/*_${VERSION}_x64*.exe.sig | head -n 1)
+          ARM64_SIG=$(cat signatures/*_${VERSION}_arm64*.exe.sig | head -n 1)
 
           cat > latest.json << EOF
           {
