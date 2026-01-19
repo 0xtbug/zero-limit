@@ -75,6 +75,11 @@ jobs:
       - name: Build Tauri (x64)
         run: pnpm tauri build --target x86_64-pc-windows-msvc
 
+      - name: Prepare portable executable
+        run: |
+          VERSION="${{ needs.create-release.outputs.version }}"
+          cp src-tauri/target/x86_64-pc-windows-msvc/release/ZeroLimit.exe "ZeroLimit_${VERSION}_portable.exe"
+
       - name: Upload artifacts to release
         uses: softprops/action-gh-release@v2
         with:
@@ -85,6 +90,7 @@ jobs:
             src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe.sig
             src-tauri/target/x86_64-pc-windows-msvc/release/bundle/msi/*.msi
             src-tauri/target/x86_64-pc-windows-msvc/release/bundle/msi/*.msi.sig
+            ZeroLimit_*_portable.exe
 
   build-windows-arm64:
     needs: create-release
@@ -125,6 +131,11 @@ jobs:
       - name: Build Tauri (ARM64)
         run: pnpm tauri build --target aarch64-pc-windows-msvc
 
+      - name: Prepare portable executable
+        run: |
+          VERSION="${{ needs.create-release.outputs.version }}"
+          cp src-tauri/target/aarch64-pc-windows-msvc/release/ZeroLimit.exe "ZeroLimit_${VERSION}_arm64_portable.exe"
+
       - name: Upload artifacts to release
         uses: softprops/action-gh-release@v2
         with:
@@ -135,6 +146,7 @@ jobs:
             src-tauri/target/aarch64-pc-windows-msvc/release/bundle/nsis/*.exe.sig
             src-tauri/target/aarch64-pc-windows-msvc/release/bundle/msi/*.msi
             src-tauri/target/aarch64-pc-windows-msvc/release/bundle/msi/*.msi.sig
+            ZeroLimit_*_portable.exe
 
   publish-release:
     needs: [create-release, build-windows-x64, build-windows-arm64]
