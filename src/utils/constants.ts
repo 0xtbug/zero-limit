@@ -17,4 +17,4 @@ export const STORAGE_KEY_THEME = 'cli-proxy-theme';
 export const STORAGE_KEY_LANGUAGE = 'cli-proxy-language';
 
 // App
-export const APP_VERSION = '1.0.0';
+// export const APP_VERSION = '1.0.0'; // Deprecated in favor of useAppVersion hook

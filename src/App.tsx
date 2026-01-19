@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { useAuthStore, useThemeStore, useCliProxyStore } from '@/stores'
+import { useAuthStore, useThemeStore, useCliProxyStore, useUpdateStore } from '@/stores'
 import { ProtectedRoute } from '@/router/ProtectedRoute'
 import { MainRoutes } from '@/router/MainRoutes'
 import { LoginPage } from '@/pages/LoginPage'
@@ -10,6 +10,7 @@ function App() {
   const { isAuthenticated, restoreSession, connectionStatus } = useAuthStore()
   const { theme, setTheme } = useThemeStore()
   const { exePath, autoStart, runInBackground, startServer } = useCliProxyStore()
+  const { checkForUpdates } = useUpdateStore()
 
   useEffect(() => {
     restoreSession()
@@ -23,6 +24,11 @@ function App() {
     if (autoStart && exePath) {
       startServer()
     }
+
+    // Check for updates in background on startup
+    checkForUpdates().catch(() => {
+      // Silently ignore update check errors on startup
+    })
   }, []) // Only run once on mount
 
   // Show loading during session restore

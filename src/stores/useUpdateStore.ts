@@ -51,8 +51,8 @@ export const useUpdateStore = create<UpdateState & UpdateActions>((set, get) => 
           status: 'available',
           updateInfo: {
             version: update.version,
-            date: update.date,
-            body: update.body,
+            date: update.date ?? null,
+            body: update.body ?? null,
           },
           pendingUpdate: update,
         });

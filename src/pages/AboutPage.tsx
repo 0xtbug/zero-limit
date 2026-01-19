@@ -4,11 +4,17 @@
 
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { APP_VERSION } from '@/utils/constants';
-import { User, Github, ExternalLink } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { useUpdateStore } from '@/stores';
+import { useAppVersion } from '@/hooks';
+import { User, Github, ExternalLink, RefreshCw, Download, Loader2 } from 'lucide-react';
 import { open } from '@tauri-apps/plugin-shell';
 
 export function AboutPage() {
+  const { status, updateInfo, downloadProgress, error, checkForUpdates, downloadAndInstall } = useUpdateStore();
+  const version = useAppVersion();
+
   const openGitHub = async () => {
     await open('https://github.com/0xtbug/zero-limit');
   };
@@ -24,8 +30,62 @@ export function AboutPage() {
         />
         <h1 className="text-3xl font-bold">ZeroLimit</h1>
         <div className="flex items-center gap-2">
-          <Badge variant="secondary" className="text-sm">v{APP_VERSION}</Badge>
+          <Badge variant="secondary" className="text-sm">v{version}</Badge>
         </div>
+      </div>
+
+      {/* Update Section */}
+      <div className="flex flex-col items-center space-y-3 w-full max-w-sm">
+        {/* Check for Updates Button */}
+        {status !== 'available' && status !== 'downloading' && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={checkForUpdates}
+            disabled={status === 'checking'}
+          >
+            {status === 'checking' ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Checking...
+              </>
+            ) : (
+              <>
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Check for Updates
+              </>
+            )}
+          </Button>
+        )}
+
+        {/* Update Available */}
+        {status === 'available' && updateInfo && (
+          <div className="text-center space-y-2">
+            <p className="text-sm font-medium text-green-600 dark:text-green-400">
+              Update Available: v{updateInfo.version}
+            </p>
+            <Button size="sm" onClick={downloadAndInstall}>
+              <Download className="mr-2 h-4 w-4" />
+              Download & Install
+            </Button>
+          </div>
+        )}
+
+        {/* Downloading */}
+        {status === 'downloading' && (
+          <div className="w-full space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span>Downloading...</span>
+              <span>{downloadProgress}%</span>
+            </div>
+            <Progress value={downloadProgress} />
+          </div>
+        )}
+
+        {/* Error */}
+        {status === 'error' && error && (
+          <p className="text-sm text-red-500">{error}</p>
+        )}
       </div>
 
       {/* Info Cards */}
