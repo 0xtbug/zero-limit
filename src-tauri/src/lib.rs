@@ -69,6 +69,7 @@ pub fn run() {
             start_cli_proxy,
             stop_cli_proxy,
             is_cli_proxy_running,
+            run_kiro_auth,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")

@@ -25,7 +25,8 @@ import {
   Eye,
   EyeOff
 } from 'lucide-react';
-import { openExternalUrl, isTauri } from '@/services/tauri';
+import { openExternalUrl, isTauri, runKiroAuth } from '@/services/tauri';
+import { useCliProxyStore } from '@/stores';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -66,7 +67,8 @@ async function openInBrowser(url: string): Promise<void> {
 
 
 // Helper to clean up names
-function formatName(name: string): string {
+function formatName(name: string | undefined | null): string {
+  if (!name) return 'Unknown';
   return name.replace(/_gmail_com/g, '').replace(/\.json$/g, '');
 }
 
@@ -159,7 +161,7 @@ export function ProvidersPage() {
           updateProviderState(providerId, { status: 'success' });
           stopPolling(providerId);
           setSelectedProvider(null);
-          loadFiles(); // Refresh list on success
+          loadFiles();
         } else if (status.status === 'error' || status.failed) {
           updateProviderState(providerId, {
             status: 'error',
@@ -173,12 +175,32 @@ export function ProvidersPage() {
     }, 3000);
 
     pollingTimers.current[providerId] = timer;
-  }, [stopPolling, loadFiles]); // Added loadFiles dep
+  }, [stopPolling, loadFiles]);
 
   const startAuth = async (providerId: ProviderId, options?: { projectId?: string }) => {
     stopPolling(providerId);
     updateProviderState(providerId, { status: 'waiting', error: undefined });
     setSelectedProvider(providerId);
+
+    if (providerId === 'kiro') {
+      try {
+        const { exePath } = useCliProxyStore.getState();
+        if (!exePath) {
+          throw new Error('CLI Proxy path not configured. Please set it in Settings.');
+        }
+        await runKiroAuth(exePath, 'google');
+        updateProviderState(providerId, { status: 'success' });
+        setSelectedProvider(null);
+        await new Promise(resolve => setTimeout(resolve, 500));
+        await loadFiles();
+      } catch (err) {
+        updateProviderState(providerId, {
+          status: 'error',
+          error: (err as Error).message,
+        });
+      }
+      return;
+    }
 
     try {
       const response = await oauthApi.startAuth(providerId, options);
@@ -222,7 +244,7 @@ export function ProvidersPage() {
       stopPolling(selectedProvider);
       setCallbackUrl('');
       setSelectedProvider(null);
-      loadFiles(); // Refresh list
+      loadFiles();
     } catch (err) {
       updateProviderState(selectedProvider, {
         status: 'error',
@@ -236,10 +258,6 @@ export function ProvidersPage() {
       await navigator.clipboard.writeText(text);
     } catch { /* ignore */ }
   };
-
-  // getStatusIcon removed as it was unused in the current render logic
-  // If needed later:
-  // const getStatusIcon = (status: ProviderStatus) => { ... }
 
   if (!isAuthenticated) {
      return (
@@ -313,13 +331,36 @@ export function ProvidersPage() {
                 <div className="space-y-1">
                      {files.map((file) => {
                         let iconPath = '';
-                        const p = file.provider.toLowerCase();
+                        const p = (file.provider || '').toLowerCase();
                         if (p.includes('antigravity')) iconPath = '/antigravity/antigravity.png';
                         else if (p.includes('claude') || p.includes('anthropic')) iconPath = '/claude/claude.png';
                         else if (p.includes('gemini')) iconPath = '/gemini/gemini.png';
                         else if (p.includes('codex') || p.includes('openai')) iconPath = '/openai/openai.png';
+                        else if (p.includes('kiro')) iconPath = '/kiro/kiro.png';
 
-                        const rawName = formatName((file.metadata?.email as string) || (file.account as string) || file.filename);
+                        let rawName: string;
+                        if (p.includes('kiro')) {
+                          const filename = file.filename || file.id || '';
+                          const match = filename.match(/kiro-(\w+)/i);
+
+                          if (match && match[1]) {
+                            const method = match[1].charAt(0).toUpperCase() + match[1].slice(1).toLowerCase();
+                            rawName = `Kiro (${method})`;
+                          } else {
+                            const metaEmail = (file.metadata?.email as string) || (file['email'] as string);
+                            const authMethod = (file.metadata?.provider as string) || (file.metadata?.auth_method as string);
+
+                            if (metaEmail && metaEmail.trim() !== '') {
+                              rawName = formatName(metaEmail);
+                            } else if (authMethod) {
+                              rawName = `Kiro (${authMethod})`;
+                            } else {
+                              rawName = 'Kiro';
+                            }
+                          }
+                        } else {
+                          rawName = formatName((file.metadata?.email as string) || (file.account as string) || file.filename);
+                        }
                         const email = isPrivacyMode ? maskEmail(rawName) : rawName;
 
                         return (
@@ -391,6 +432,7 @@ export function ProvidersPage() {
                     else if (pid === 'anthropic' || (pid as string) === 'claude') iconPath = '/claude/claude.png';
                     else if (pid === 'gemini-cli') iconPath = '/gemini/gemini.png';
                     else if (pid === 'codex') iconPath = '/openai/openai.png';
+                    else if (pid === 'kiro') iconPath = '/kiro/kiro.png';
 
                     const isSelected = selectedProvider === provider.id;
 

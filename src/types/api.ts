@@ -9,7 +9,7 @@ export interface Config {
 }
 
 // OAuth types
-export type OAuthProvider = 'codex' | 'anthropic' | 'antigravity' | 'gemini-cli';
+export type OAuthProvider = 'codex' | 'anthropic' | 'antigravity' | 'gemini-cli' | 'kiro';
 
 export interface OAuthStartResponse {
   url?: string;

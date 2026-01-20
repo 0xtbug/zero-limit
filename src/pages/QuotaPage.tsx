@@ -39,6 +39,8 @@ interface FileQuota {
     percentage: number;
     resetTime?: string;
   }>;
+  // Email from API response (e.g., Kiro)
+  email?: string;
 }
 
 interface ProviderSection {
@@ -48,19 +50,21 @@ interface ProviderSection {
 }
 
 // Identify provider from filename - with null safety
-function getProviderType(file: AuthFile): 'antigravity' | 'codex' | 'gemini-cli' | 'unknown' {
+function getProviderType(file: AuthFile): 'antigravity' | 'codex' | 'gemini-cli' | 'kiro' | 'unknown' {
   // Handle missing filename
   const filename = (file?.filename || file?.id || '').toLowerCase();
 
   if (filename.startsWith('antigravity-') || filename.includes('antigravity')) return 'antigravity';
   if (filename.startsWith('codex-') || filename.includes('codex')) return 'codex';
   if (filename.startsWith('gemini-cli-') || filename.includes('gemini')) return 'gemini-cli';
+  if (filename.startsWith('kiro-') || filename.includes('kiro')) return 'kiro';
 
   // Fallback to provider field
   const provider = (file?.provider || '').toLowerCase();
   if (provider.includes('antigravity')) return 'antigravity';
   if (provider.includes('codex')) return 'codex';
   if (provider.includes('gemini')) return 'gemini-cli';
+  if (provider.includes('kiro')) return 'kiro';
 
   return 'unknown';
 }
@@ -96,6 +100,7 @@ export function QuotaPage() {
         antigravity: [],
         codex: [],
         'gemini-cli': [],
+        'kiro': [],
       };
 
       files.forEach((file) => {
@@ -117,6 +122,7 @@ export function QuotaPage() {
         { provider: 'antigravity', displayName: 'Antigravity', files: grouped.antigravity },
         { provider: 'codex', displayName: 'Codex (OpenAI)', files: grouped.codex },
         { provider: 'gemini-cli', displayName: 'Gemini CLI', files: grouped['gemini-cli'] },
+        { provider: 'kiro', displayName: 'Kiro (CodeWhisperer)', files: grouped['kiro'] },
       ]);
 
       // Auto-fetch quota for all files
@@ -142,7 +148,7 @@ export function QuotaPage() {
     if (providedFile) {
         const type = getProviderType(providedFile);
         if (type !== 'unknown') {
-            targetProvider = type === 'antigravity' ? 'antigravity' : type === 'codex' ? 'codex' : 'gemini-cli';
+            targetProvider = type;
         }
     }
 
@@ -235,6 +241,21 @@ export function QuotaPage() {
             error: result.error
           } : f)
         } : s));
+
+      } else if (targetProvider === 'kiro') {
+        const result = await quotaApi.fetchKiro(authIndex);
+
+        setSections((prev) => prev.map(s => s.provider === 'kiro' ? {
+          ...s,
+          files: s.files.map(f => f.fileId === fileId ? {
+            ...f,
+            loading: false,
+            plan: result.plan,
+            models: result.models,
+            email: result.email,
+            error: result.error
+          } : f)
+        } : s));
       }
     } catch (err) {
       const msg = (err as Error).message;
@@ -256,6 +277,7 @@ export function QuotaPage() {
         if (key === 'antigravity') return '/antigravity/antigravity.png';
         if (key === 'codex') return '/openai/openai.png'; // Assuming Codex uses OpenAI icon
         if (key === 'gemini-cli') return '/gemini/gemini.png';
+        if (key === 'kiro') return '/kiro/kiro.png';
         return undefined;
     };
 
@@ -390,7 +412,7 @@ export function QuotaPage() {
                 fileId={file.fileId}
                 filename={file.filename}
                 provider={file.provider}
-                email={file.originalFile?.account || '********@*****.com'}
+                email={file.email || file.originalFile?.account || '********@*****.com'}
                 loading={file.loading}
                 error={file.error}
                 items={items}
@@ -410,7 +432,7 @@ export function QuotaPage() {
                 fileId={file.fileId}
                 filename={file.filename}
                 provider={file.provider}
-                email={file.originalFile?.account || '********@*****.com'}
+                email={file.email || file.originalFile?.account || '********@*****.com'}
                 loading={file.loading}
                 error={file.error}
                 items={items}
