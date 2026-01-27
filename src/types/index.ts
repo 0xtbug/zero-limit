@@ -5,6 +5,7 @@
 export * from './auth';
 export * from './authFile';
 export * from './api';
+export * from './usage';
 
 // Provider types - Array format for UI iteration
 export const PROVIDERS = [

@@ -216,10 +216,6 @@ export function ProviderQuotaCard({
                  <div className="h-2 w-2 rounded-full bg-destructive"></div>
                 {error}
             </div>
-        ) : loading ? (
-            <div className="flex items-center justify-center py-4">
-                <RefreshCw className="h-5 w-5 animate-spin text-muted-foreground" />
-            </div>
         ) : (
             <div className="space-y-4">
                 <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">

@@ -103,12 +103,14 @@ function parseAntigravityModels(body: unknown): QuotaModel[] {
 
     if (!model || typeof model !== 'object') return;
 
-    if (model.isInternal === true || key.startsWith('chat_') || key.includes('gpt-oss')) return;
+    if (model.isInternal === true || key.startsWith('chat_') || key === 'tab_flash_lite_preview') return;
 
     let name = (model.displayName as string) || (model.display_name as string);
     if (!name) {
       if (key === 'rev19-uic3-1p') name = 'Gemini 2.5 Computer Use';
       else if (key === 'gemini-3-pro-image') name = 'Gemini 3 Pro Image';
+      else if (key === 'gemini-2.5-flash-lite') name = 'Gemini 2.5 Flash Lite';
+      else if (key === 'gemini-2.5-flash') name = 'Gemini 2.5 Flash';
       else name = key;
     }
 
@@ -144,6 +146,66 @@ function parseAntigravityModels(body: unknown): QuotaModel[] {
       name,
       percentage: Math.round(parsedRemaining * 100),
       resetTime
+    });
+  });
+
+  // Extract extra models from agentModelSorts and other lists
+  const extraIds = new Set<string>();
+
+  // Helper to add IDs to set
+  const addIds = (ids: unknown) => {
+    if (Array.isArray(ids)) {
+      ids.forEach(id => {
+        if (typeof id === 'string') extraIds.add(id);
+      });
+    }
+  };
+
+  // 1. agentModelSorts
+  if (Array.isArray(payload.agentModelSorts)) {
+    payload.agentModelSorts.forEach((sort: any) => {
+      if (sort?.groups && Array.isArray(sort.groups)) {
+        sort.groups.forEach((group: any) => {
+          addIds(group.modelIds);
+        });
+      }
+    });
+  }
+
+  // 2. Direct lists from body
+  addIds(payload.commandModelIds);
+  addIds(payload.tabModelIds);
+  addIds(payload.imageGenerationModelIds);
+  addIds(payload.mqueryModelIds);
+  addIds(payload.webSearchModelIds);
+  addIds(payload.defaultAgentModelId ? [payload.defaultAgentModelId] : []);
+
+  // Add extra models that are not already in the list
+  // We check against the existing models array by name/ID
+  // Since we used name mapping above, we should check if we can map back or just check if the ID was processed.
+  // Actually, standard keys in `modelsData` match IDs.
+
+  const existingKeys = new Set(Object.keys(modelsData));
+
+  extraIds.forEach(id => {
+    // Skip if already processed from payload.models
+    if (existingKeys.has(id)) return;
+
+    // Skip internal/special ones if needed (consistency with above)
+    if (id.startsWith('chat_') || id === 'tab_flash_lite_preview') return;
+
+    // determine display name
+    let name = id;
+    if (id === 'rev19-uic3-1p') name = 'Gemini 2.5 Computer Use';
+    else if (id === 'gemini-3-pro-image') name = 'Gemini 3 Pro Image';
+    else if (id === 'gemini-2.5-flash-lite') name = 'Gemini 2.5 Flash Lite';
+    else if (id === 'gemini-2.5-flash') name = 'Gemini 2.5 Flash';
+
+    // Add as available (100%)
+    models.push({
+      name,
+      percentage: 100,
+      resetTime: undefined
     });
   });
 

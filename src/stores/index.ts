@@ -8,3 +8,4 @@ export { useConfigStore } from './useConfigStore';
 export { useLanguageStore } from './useLanguageStore';
 export { useThemeStore } from './useThemeStore';
 export { useUpdateStore } from './useUpdateStore';
+export { useUsageStore } from './useUsageStore';

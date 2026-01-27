@@ -323,13 +323,14 @@ export function ProvidersPage() {
             )}
 
             {/* List of Connected Accounts */}
-            {!loadingFiles && files.length === 0 ? (
+            {!loadingFiles && files.length === 0 && (
                 <div className="flex flex-col items-center justify-center py-8 text-muted-foreground border border-dashed rounded-lg">
                     <p>{t('providers.noAccounts')}</p>
                 </div>
-            ) : (
-                <div className="space-y-1">
-                     {files.map((file) => {
+            )}
+
+            <div className="space-y-1">
+                 {files.map((file) => {
                         let iconPath = '';
                         const p = (file.provider || '').toLowerCase();
                         if (p.includes('antigravity')) iconPath = '/antigravity/antigravity.png';
@@ -403,14 +404,13 @@ export function ProvidersPage() {
                             </div>
                         </div>
                      )})}
-                </div>
-            )}
 
-             {loadingFiles && (
-                <div className="flex justify-center py-4">
-                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                </div>
-            )}
+                     {loadingFiles && (
+                        <div className="flex justify-center py-4">
+                            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                        </div>
+                     )}
+            </div>
         </section>
 
         {/* --- Section 2: Add Provider --- */}
