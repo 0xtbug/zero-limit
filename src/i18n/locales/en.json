@@ -104,6 +104,34 @@
     "unknown": "Unknown"
   },
 
+  "cliProxy": {
+    "title": "CLI Proxy Server",
+    "description": "Configure the CLI Proxy API service",
+    "executablePath": "Executable Path",
+    "noPathConfigured": "No path configured",
+    "browse": "Browse",
+    "autoStart": "Auto-start on launch",
+    "autoStartDesc": "Automatically start the proxy when the app opens",
+    "runInBackground": "Run in background",
+    "runInBackgroundDesc": "Minimize to system tray when closing the window",
+    "status": "Status",
+    "running": "Running",
+    "stopped": "Stopped",
+    "start": "Start",
+    "stop": "Stop"
+  },
+  "about": {
+    "title": "About",
+    "checkForUpdates": "Check for Updates",
+    "checking": "Checking...",
+    "latestVersion": "You are using the latest version.",
+    "updateAvailable": "Update Available",
+    "downloadAndInstall": "Download & Install",
+    "downloading": "Downloading...",
+    "author": "Author",
+    "viewCode": "View Code",
+    "copyright": "Copyright © 2025 0xtbug. All rights reserved."
+  },
   "dashboard": {
     "title": "Dashboard",
     "connectionStatus": "Connection Status",

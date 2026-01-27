@@ -103,6 +103,34 @@
     "percentLeft": "남은 비율 {{percent}}%",
     "unknown": "알 수 없음"
   },
+  "cliProxy": {
+    "title": "CLI Proxy 서버",
+    "description": "CLI Proxy API 서비스 설정",
+    "executablePath": "실행 파일 경로",
+    "noPathConfigured": "경로가 설정되지 않음",
+    "browse": "찾아보기",
+    "autoStart": "시작 시 자동 실행",
+    "autoStartDesc": "앱이 열릴 때 자동으로 프록시를 시작합니다",
+    "runInBackground": "백그라운드에서 실행",
+    "runInBackgroundDesc": "창을 닫을 때 시스템 트레이로 최소화",
+    "status": "상태",
+    "running": "실행 중",
+    "stopped": "중지됨",
+    "start": "시작",
+    "stop": "중지"
+  },
+  "about": {
+    "title": "정보",
+    "checkForUpdates": "업데이트 확인",
+    "checking": "확인 중...",
+    "latestVersion": "최신 버전을 사용하고 있습니다.",
+    "updateAvailable": "업데이트 가능",
+    "downloadAndInstall": "다운로드 및 설치",
+    "downloading": "다운로드 중...",
+    "author": "개발자",
+    "viewCode": "코드 보기",
+    "copyright": "Copyright © 2025 0xtbug. All rights reserved."
+  },
   "dashboard": {
     "title": "대시보드",
     "connectionStatus": "연결 상태",

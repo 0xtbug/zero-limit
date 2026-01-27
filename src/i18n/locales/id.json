@@ -18,6 +18,7 @@
   },
   "auth": {
     "login": "Masuk",
+    "appTitle": "ZeroLimit",
     "logout": "Keluar",
     "apiBase": "URL Dasar API",
     "apiBasePlaceholder": "cth., http://localhost:8317",
@@ -40,7 +41,8 @@
     "config": "Konfigurasi",
     "logs": "Log",
     "system": "Sistem",
-    "providers": "Penyedia AI"
+    "providers": "Penyedia AI",
+    "about": "Tentang"
   },
   "providers": {
     "title": "Penyedia",
@@ -102,6 +104,34 @@
     "unknown": "Tidak Diketahui"
   },
 
+  "cliProxy": {
+    "title": "Server CLI Proxy",
+    "description": "Konfigurasi layanan CLI Proxy API",
+    "executablePath": "Jalur Eksekusi",
+    "noPathConfigured": "Jalur tidak dikonfigurasi",
+    "browse": "Telusuri",
+    "autoStart": "Mulai otomatis saat peluncuran",
+    "autoStartDesc": "Otomatis memulai proxy saat aplikasi dibuka",
+    "runInBackground": "Jalankan di latar belakang",
+    "runInBackgroundDesc": "Minimalkan ke system tray saat menutup jendela",
+    "status": "Status",
+    "running": "Berjalan",
+    "stopped": "Berhenti",
+    "start": "Mulai",
+    "stop": "Berhenti"
+  },
+  "about": {
+    "title": "Tentang",
+    "checkForUpdates": "Periksa Pembaruan",
+    "checking": "Memeriksa...",
+    "latestVersion": "Anda menggunakan versi terbaru.",
+    "updateAvailable": "Pembaruan Tersedia",
+    "downloadAndInstall": "Unduh & Pasang",
+    "downloading": "Mengunduh...",
+    "author": "Pembuat",
+    "viewCode": "Lihat Kode",
+    "copyright": "Hak Cipta © 2025 0xtbug. Semua hak dilindungi."
+  },
   "dashboard": {
     "title": "Dasbor",
     "connectionStatus": "Status Koneksi",

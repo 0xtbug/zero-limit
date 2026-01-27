@@ -2,6 +2,7 @@
  * About Page
  */
 
+import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -12,6 +13,7 @@ import { User, Github, ExternalLink, RefreshCw, Download, Loader2, CheckCircle2 
 import { open } from '@tauri-apps/plugin-shell';
 
 export function AboutPage() {
+  const { t } = useTranslation();
   const { status, updateInfo, downloadProgress, error, checkForUpdates, downloadAndInstall } = useUpdateStore();
   const version = useAppVersion();
 
@@ -47,12 +49,12 @@ export function AboutPage() {
             {status === 'checking' ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Checking...
+                {t('about.checking')}
               </>
             ) : (
               <>
                 <RefreshCw className="mr-2 h-4 w-4" />
-                Check for Updates
+                {t('about.checkForUpdates')}
               </>
             )}
           </Button>
@@ -62,7 +64,7 @@ export function AboutPage() {
         {status === 'uptodate' && (
           <div className="flex items-center justify-center gap-2 text-green-600 dark:text-green-500 animate-in fade-in slide-in-from-top-1 duration-300 py-2">
             <CheckCircle2 className="h-4 w-4" />
-            <span className="text-sm font-medium">You are using the latest version.</span>
+            <span className="text-sm font-medium">{t('about.latestVersion')}</span>
           </div>
         )}
 
@@ -70,11 +72,11 @@ export function AboutPage() {
         {status === 'available' && updateInfo && (
           <div className="text-center space-y-2">
             <p className="text-sm font-medium text-green-600 dark:text-green-400">
-              Update Available: v{updateInfo.version}
+              {t('about.updateAvailable')}: v{updateInfo.version}
             </p>
             <Button size="sm" onClick={downloadAndInstall}>
               <Download className="mr-2 h-4 w-4" />
-              Download & Install
+              {t('about.downloadAndInstall')}
             </Button>
           </div>
         )}
@@ -83,7 +85,7 @@ export function AboutPage() {
         {status === 'downloading' && (
           <div className="w-full space-y-2">
             <div className="flex items-center justify-between text-sm">
-              <span>Downloading...</span>
+              <span>{t('about.downloading')}</span>
               <span>{downloadProgress}%</span>
             </div>
             <Progress value={downloadProgress} />
@@ -100,7 +102,7 @@ export function AboutPage() {
       <div className="flex gap-4">
         <Card className="flex flex-col items-center p-6 min-w-[140px]">
           <User className="h-6 w-6 text-muted-foreground mb-2" />
-          <span className="text-xs text-muted-foreground uppercase tracking-wide">Author</span>
+          <span className="text-xs text-muted-foreground uppercase tracking-wide">{t('about.author')}</span>
           <span className="font-semibold">0xtbug</span>
         </Card>
 
@@ -111,7 +113,7 @@ export function AboutPage() {
           <Github className="h-6 w-6 text-muted-foreground mb-2" />
           <span className="text-xs text-muted-foreground uppercase tracking-wide">GitHub</span>
           <span className="font-semibold flex items-center gap-1">
-            View Code <ExternalLink className="h-3 w-3" />
+            {t('about.viewCode')} <ExternalLink className="h-3 w-3" />
           </span>
         </Card>
       </div>
@@ -125,7 +127,7 @@ export function AboutPage() {
 
       {/* Copyright */}
       <p className="text-xs text-muted-foreground/50">
-        Copyright © 2025 0xtbug. All rights reserved.
+        {t('about.copyright')}
       </p>
     </div>
   );

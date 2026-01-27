@@ -43,21 +43,21 @@ export function SettingsPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Server className="h-5 w-5" />
-            CLI Proxy Server
+            {t('cliProxy.title')}
           </CardTitle>
-          <CardDescription>Configure the CLI Proxy API service</CardDescription>
+          <CardDescription>{t('cliProxy.description')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Exe Path */}
           <div className="space-y-2">
-            <Label>Executable Path</Label>
+            <Label>{t('cliProxy.executablePath')}</Label>
             <div className="flex items-center gap-2">
               <div className="flex-1 rounded-md border bg-muted px-3 py-2 text-sm truncate">
-                {exePath || 'No path configured'}
+                {exePath || t('cliProxy.noPathConfigured')}
               </div>
               <Button variant="outline" size="sm" onClick={browseForExe}>
                 <FolderOpen className="mr-2 h-4 w-4" />
-                Browse
+                {t('cliProxy.browse')}
               </Button>
             </div>
           </div>
@@ -65,9 +65,9 @@ export function SettingsPage() {
           {/* Auto Start Toggle */}
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Auto-start on launch</Label>
+              <Label>{t('cliProxy.autoStart')}</Label>
               <p className="text-xs text-muted-foreground">
-                Automatically start the proxy when the app opens
+                {t('cliProxy.autoStartDesc')}
               </p>
             </div>
             <button
@@ -90,9 +90,9 @@ export function SettingsPage() {
           {/* Run in Background Toggle */}
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Run in background</Label>
+              <Label>{t('cliProxy.runInBackground')}</Label>
               <p className="text-xs text-muted-foreground">
-                Minimize to system tray when closing the window
+                {t('cliProxy.runInBackgroundDesc')}
               </p>
             </div>
             <button
@@ -115,26 +115,26 @@ export function SettingsPage() {
           {/* Server Status & Controls */}
           <div className="flex items-center justify-between pt-2 border-t">
             <div className="flex items-center gap-2">
-              <span className="text-sm">Status:</span>
+              <span className="text-sm">{t('cliProxy.status')}:</span>
               {isServerRunning ? (
                 <span className="flex items-center gap-1 text-sm text-green-500">
                   <CheckCircle2 className="h-4 w-4" />
-                  Running
+                  {t('cliProxy.running')}
                 </span>
               ) : (
-                <span className="text-sm text-muted-foreground">Stopped</span>
+                <span className="text-sm text-muted-foreground">{t('cliProxy.stopped')}</span>
               )}
             </div>
             {exePath && (
               isServerRunning ? (
                 <Button variant="destructive" size="sm" onClick={stopServer}>
                   <Square className="mr-2 h-4 w-4" />
-                  Stop
+                  {t('cliProxy.stop')}
                 </Button>
               ) : (
                 <Button variant="default" size="sm" onClick={startServer}>
                   <Play className="mr-2 h-4 w-4" />
-                  Start
+                  {t('cliProxy.start')}
                 </Button>
               )
             )}

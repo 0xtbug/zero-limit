@@ -103,6 +103,34 @@
     "percentLeft": "เหลือ {{percent}}%",
     "unknown": "ไม่ทราบ"
   },
+  "cliProxy": {
+    "title": "เซิร์ฟเวอร์ CLI Proxy",
+    "description": "กำหนดค่าบริการ CLI Proxy API",
+    "executablePath": "ที่อยู่ไฟล์เรียกใช้งาน",
+    "noPathConfigured": "ยังไม่ได้กำหนดค่าพาธ",
+    "browse": "เรียกดู",
+    "autoStart": "เริ่มอัตโนมัติเมื่อเปิด",
+    "autoStartDesc": "เริ่มพร็อกซีโดยอัตโนมัติเมื่อเปิดแอป",
+    "runInBackground": "ทำงานในพื้นหลัง",
+    "runInBackgroundDesc": "ย่อลงเป็นไอคอนในถาดระบบเมื่อปิดหน้าต่าง",
+    "status": "สถานะ",
+    "running": "กำลังทำงาน",
+    "stopped": "หยุดแล้ว",
+    "start": "เริ่ม",
+    "stop": "หยุด"
+  },
+  "about": {
+    "title": "เกี่ยวกับ",
+    "checkForUpdates": "ตรวจสอบการอัปเดต",
+    "checking": "กำลังตรวจสอบ...",
+    "latestVersion": "คุณกำลังใช้เวอร์ชันล่าสุด",
+    "updateAvailable": "มีอัปเดตใหม่",
+    "downloadAndInstall": "ดาวน์โหลดและติดตั้ง",
+    "downloading": "กำลังดาวน์โหลด...",
+    "author": "ผู้พัฒนา",
+    "viewCode": "ดูโค้ด",
+    "copyright": "ลิขสิทธิ์ © 2025 0xtbug สงวนลิขสิทธิ์"
+  },
   "dashboard": {
     "title": "แดชบอร์ด",
     "connectionStatus": "สถานะการเชื่อมต่อ",

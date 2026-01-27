@@ -103,6 +103,34 @@
     "percentLeft": "Còn lại {{percent}}%",
     "unknown": "Không xác định"
   },
+  "cliProxy": {
+    "title": "Máy chủ CLI Proxy",
+    "description": "Cấu hình dịch vụ CLI Proxy API",
+    "executablePath": "Đường dẫn tệp thực thi",
+    "noPathConfigured": "Chưa cấu hình đường dẫn",
+    "browse": "Duyệt",
+    "autoStart": "Tự động khởi động khi mở",
+    "autoStartDesc": "Tự động khởi động proxy khi ứng dụng được mở",
+    "runInBackground": "Chạy nền",
+    "runInBackgroundDesc": "Thu nhỏ xuống khay hệ thống khi đóng cửa sổ",
+    "status": "Trạng thái",
+    "running": "Đang chạy",
+    "stopped": "Đã dừng",
+    "start": "Khởi động",
+    "stop": "Dừng"
+  },
+  "about": {
+    "title": "Giới thiệu",
+    "checkForUpdates": "Kiểm tra cập nhật",
+    "checking": "Đang kiểm tra...",
+    "latestVersion": "Bạn đang sử dụng phiên bản mới nhất.",
+    "updateAvailable": "Có bản cập nhật",
+    "downloadAndInstall": "Tải xuống & Cài đặt",
+    "downloading": "Đang tải xuống...",
+    "author": "Tác giả",
+    "viewCode": "Xem mã nguồn",
+    "copyright": "Bản quyền © 2025 0xtbug. Mọi quyền được bảo lưu."
+  },
   "dashboard": {
     "title": "Bảng điều khiển",
     "connectionStatus": "Trạng thái kết nối",

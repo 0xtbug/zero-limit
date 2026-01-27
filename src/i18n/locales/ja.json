@@ -103,6 +103,34 @@
     "percentLeft": "残り {{percent}}%",
     "unknown": "不明"
   },
+  "cliProxy": {
+    "title": "CLI Proxy サーバー",
+    "description": "CLI Proxy API サービスを設定",
+    "executablePath": "実行ファイルのパス",
+    "noPathConfigured": "パスが設定されていません",
+    "browse": "参照",
+    "autoStart": "起動時に自動開始",
+    "autoStartDesc": "アプリを開いたときにプロキシを自動的に開始します",
+    "runInBackground": "バックグラウンドで実行",
+    "runInBackgroundDesc": "ウィンドウを閉じたときにシステムトレイに最小化",
+    "status": "ステータス",
+    "running": "実行中",
+    "stopped": "停止中",
+    "start": "開始",
+    "stop": "停止"
+  },
+  "about": {
+    "title": "情報",
+    "checkForUpdates": "更新を確認",
+    "checking": "確認中...",
+    "latestVersion": "最新バージョンを使用しています。",
+    "updateAvailable": "更新が利用可能",
+    "downloadAndInstall": "ダウンロードしてインストール",
+    "downloading": "ダウンロード中...",
+    "author": "作者",
+    "viewCode": "コードを見る",
+    "copyright": "Copyright © 2025 0xtbug. All rights reserved."
+  },
   "dashboard": {
     "title": "ダッシュボード",
     "connectionStatus": "接続状態",

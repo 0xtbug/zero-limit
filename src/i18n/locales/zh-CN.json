@@ -18,6 +18,7 @@
   },
   "auth": {
     "login": "登录",
+    "appTitle": "ZeroLimit",
     "logout": "登出",
     "apiBase": "API 地址",
     "apiBasePlaceholder": "例如：http://localhost:8317",
@@ -40,7 +41,8 @@
     "config": "配置",
     "logs": "日志",
     "system": "系统",
-    "providers": "AI Providers"
+    "providers": "AI 提供商",
+    "about": "关于"
   },
   "providers": {
     "title": "提供商",
@@ -100,6 +102,34 @@
     "noUsage": "暂无使用数据",
     "percentLeft": "剩余 {{percent}}%",
     "unknown": "未知"
+  },
+  "cliProxy": {
+    "title": "CLI Proxy 服务器",
+    "description": "配置 CLI Proxy API 服务",
+    "executablePath": "可执行文件路径",
+    "noPathConfigured": "未配置路径",
+    "browse": "浏览",
+    "autoStart": "启动时自动运行",
+    "autoStartDesc": "打开应用时自动启动代理",
+    "runInBackground": "后台运行",
+    "runInBackgroundDesc": "关闭窗口时最小化到系统托盘",
+    "status": "状态",
+    "running": "运行中",
+    "stopped": "已停止",
+    "start": "启动",
+    "stop": "停止"
+  },
+  "about": {
+    "title": "关于",
+    "checkForUpdates": "检查更新",
+    "checking": "检查中...",
+    "latestVersion": "您正在使用最新版本。",
+    "updateAvailable": "有可用更新",
+    "downloadAndInstall": "下载并安装",
+    "downloading": "下载中...",
+    "author": "作者",
+    "viewCode": "查看代码",
+    "copyright": "版权所有 © 2025 0xtbug。保留所有权利。"
   },
   "dashboard": {
     "title": "仪表盘",
