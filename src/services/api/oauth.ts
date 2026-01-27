@@ -5,7 +5,7 @@
 import { apiClient } from './client';
 import type { OAuthProvider, OAuthStartResponse, OAuthCallbackResponse, OAuthStatusResponse } from '@/types';
 
-const WEBUI_SUPPORTED: OAuthProvider[] = ['codex', 'anthropic', 'antigravity', 'gemini-cli'];
+const WEBUI_SUPPORTED: OAuthProvider[] = ['codex', 'anthropic', 'antigravity', 'gemini-cli', 'kiro'];
 const CALLBACK_PROVIDER_MAP: Partial<Record<OAuthProvider, string>> = {
   'gemini-cli': 'gemini'
 };

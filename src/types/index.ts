@@ -12,6 +12,7 @@ export const PROVIDERS = [
   { id: 'codex', name: 'OpenAI Codex', requiresProjectId: false },
   { id: 'gemini-cli', name: 'Gemini CLI', requiresProjectId: true },
   { id: 'anthropic', name: 'Claude (Anthropic)', requiresProjectId: false },
+  { id: 'kiro', name: 'Kiro (CodeWhisperer)', requiresProjectId: false },
 ] as const;
 
 export type ProviderId = typeof PROVIDERS[number]['id'];
