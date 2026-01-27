@@ -40,6 +40,7 @@ Unlike [Quotio](https://github.com/nguyenphutrong/quotio) (macOS-only, Swift), Z
 | Anthropic Claude | OAuth |
 | OpenAI Codex | OAuth |
 | Antigravity | OAuth |
+| Kirocode | OAuth |
 
 ## 📦 Installation
 
