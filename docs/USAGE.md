@@ -4,12 +4,12 @@ ZeroLimit is a Windows desktop application for monitoring AI coding assistant qu
 
 ## Prerequisites
 
-Before using ZeroLimit, you need to download CLIProxyAPI:
+Before using ZeroLimit, you need CLIProxyAPI running either **locally** or on a **remote server**:
 
+### Option A: Local Setup
 1. Go to [CLIProxyAPI Releases](https://github.com/router-for-me/CLIProxyAPI/releases)
 2. Download `cli-proxy-api.exe` for Windows
 3. Extract to a folder (e.g., `C:\CLIProxyAPI\`)
-
 
 > if you want to use kirocode support, you need to download [CLIProxyAPI Plus Version](https://github.com/router-for-me/CLIProxyAPIPlus/releases)
 
@@ -26,13 +26,14 @@ Before using ZeroLimit, you need to download CLIProxyAPI:
 
 On first launch, you'll see the login screen with these sections:
 
-1. **CLI Proxy Server**
+1. **CLI Proxy Server** (Local only)
    - Click **Change** to browse and select your `cli-proxy-api.exe`
    - Click **Start** to launch the proxy server
+   - *Skip this if using a remote HTTPS server*
 
 2. **API Base URL**
-   - Default: `http://localhost:8317`
-   - This is the address where CLIProxyAPI runs
+   - **Local**: `http://localhost:8317`
+   - **Remote HTTPS**: `https://llm.yourdomain.com`
 
 3. **Management Key** (required)
    - Enter the `secret-key` from your CLIProxyAPI `config.yaml`
@@ -49,7 +50,7 @@ On first launch, you'll see the login screen with these sections:
 
 | Setting | Description |
 |---------|-------------|
-| **Executable Path** | Path to `cli-proxy-api.exe` |
+| **Executable Path** | Path to `cli-proxy-api.exe` (local only) |
 | **Auto-start on launch** | Start proxy when app opens |
 | **Run in background** | Hide to system tray when closing |
 
@@ -74,14 +75,15 @@ When "Run in background" is enabled:
 
 ## Troubleshooting
 
-### Proxy Won't Start
+### Proxy Won't Start (Local)
 - Verify the executable path is correct
 - Check if another instance is already running
 - Try running as Administrator
 
 ### Connection Failed
-- Ensure CLI Proxy is running (green status)
+- Ensure CLI Proxy is running (green status for local)
 - Check the API Base URL is correct
+- For HTTPS: verify the SSL certificate is valid
 - Verify no firewall is blocking the port
 
 ### Login Failed
