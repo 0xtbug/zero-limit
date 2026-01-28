@@ -49,6 +49,13 @@ pub async fn start_cli_proxy(exe_path: String) -> CommandResult<u32> {
     let pid = child.id();
     *guard = Some(child);
 
+    // Store executable name for cleanup
+    if let Ok(mut name_guard) = crate::state::CLI_PROXY_NAME.lock() {
+        if let Some(name) = exe.file_name().and_then(|n| n.to_str()) {
+            *name_guard = Some(name.to_string());
+        }
+    }
+
     Ok(pid)
 }
 
@@ -79,6 +86,26 @@ pub async fn stop_cli_proxy() -> CommandResult<()> {
     }
 
     *guard = None;
+
+    // Fallback: kill by name if available
+    if let Ok(mut name_guard) = crate::state::CLI_PROXY_NAME.lock() {
+        if let Some(ref name) = *name_guard {
+             if name.to_lowercase().contains("cliproxy") {
+                #[cfg(windows)]
+                {
+                    use std::process::Command;
+                    use std::os::windows::process::CommandExt;
+                    const CREATE_NO_WINDOW: u32 = 0x08000000;
+
+                    let _ = Command::new("taskkill")
+                        .args(["/F", "/T", "/IM", name])
+                        .creation_flags(CREATE_NO_WINDOW)
+                        .output();
+                }
+            }
+        }
+        *name_guard = None;
+    }
     Ok(())
 }
 
@@ -96,4 +123,48 @@ pub async fn is_cli_proxy_running() -> CommandResult<bool> {
     }
 
     Ok(false)
+}
+
+/// Run Kiro CLI authentication
+/// This spawns the CLI proxy binary with auth flags and waits for completion
+#[command]
+pub async fn run_kiro_auth(exe_path: String, auth_method: String) -> CommandResult<String> {
+    // Map auth method to CLI flag
+    let auth_flag = match auth_method.as_str() {
+        "google" => "-kiro-google-login",
+        "aws" => "-kiro-aws-login",
+        "aws-authcode" => "-kiro-aws-authcode",
+        "import" => "-kiro-import",
+        _ => return Err(CommandError::General(format!("Unknown auth method: {}", auth_method))),
+    };
+
+    // Get working directory from exe path
+    let exe = std::path::PathBuf::from(&exe_path);
+    let work_dir = exe.parent()
+        .ok_or_else(|| CommandError::General("Invalid path".into()))?;
+
+    // Spawn process and wait for completion
+    #[cfg(windows)]
+    let output = Command::new(&exe_path)
+        .arg(auth_flag)
+        .current_dir(work_dir)
+        .creation_flags(CREATE_NO_WINDOW)
+        .output()
+        .map_err(|e| CommandError::General(format!("Failed to start auth: {}", e)))?;
+
+    #[cfg(not(windows))]
+    let output = Command::new(&exe_path)
+        .arg(auth_flag)
+        .current_dir(work_dir)
+        .output()
+        .map_err(|e| CommandError::General(format!("Failed to start auth: {}", e)))?;
+
+    if output.status.success() {
+        Ok("Authentication completed successfully".to_string())
+    } else {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        let message = if !stderr.is_empty() { stderr.to_string() } else { stdout.to_string() };
+        Err(CommandError::General(format!("Auth failed: {}", message.trim())))
+    }
 }

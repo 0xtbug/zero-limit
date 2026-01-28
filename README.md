@@ -29,7 +29,8 @@ Unlike [Quotio](https://github.com/nguyenphutrong/quotio) (macOS-only, Swift), Z
 - ⚡ **One-Click Proxy Control** - Start/stop CLIProxyAPI with a single click
 - 🔄 **Auto-start on Launch** - Optionally start the proxy when the app opens
 - 🌓 **Dark/Light Theme** - Beautiful UI with theme support
-- 🌍 **Multilingual** - English, Chinese, Indonesian
+- 🌍 **Multilingual** - English, Chinese, Indonesian, Japanese, Korean, Vietnamese, Thai
+- 🔄 **Auto-update** - Automatically check for updates and install them
 
 ## 🤖 Supported Ecosystem
 
@@ -39,6 +40,7 @@ Unlike [Quotio](https://github.com/nguyenphutrong/quotio) (macOS-only, Swift), Z
 | Anthropic Claude | OAuth |
 | OpenAI Codex | OAuth |
 | Antigravity | OAuth |
+| Kirocode | OAuth |
 
 ## 📦 Installation
 

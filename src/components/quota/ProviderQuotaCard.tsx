@@ -88,8 +88,8 @@ export function ProviderQuotaCard({
       } else if (lowerName.includes('gpt') || lowerName.includes('o1')) {
         icon = '/openai/openai.png';
       } else if (isAntigravity) {
-        // For Antigravity "Other" group, default to Gemini icon
-        icon = '/gemini/gemini.png';
+        // For Antigravity "Other" group, default to OpenAI icon
+        icon = '/openai/openai.png';
       }
 
       return {
@@ -149,7 +149,7 @@ export function ProviderQuotaCard({
                             Details
                          </Button>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-5xl max-h-[85vh] overflow-y-auto no-scrollbar w-full">
+                    <DialogContent className="max-w-[95vw] sm:max-w-lg md:max-w-3xl lg:max-w-4xl max-h-[85vh] overflow-y-auto no-scrollbar w-full border-border/50">
                         <DialogHeader>
                             <DialogTitle className="flex items-center gap-3 text-xl">
                                 <span>Quota Details</span>
@@ -215,10 +215,6 @@ export function ProviderQuotaCard({
             <div className="py-2 text-sm text-destructive flex items-center gap-2">
                  <div className="h-2 w-2 rounded-full bg-destructive"></div>
                 {error}
-            </div>
-        ) : loading ? (
-            <div className="flex items-center justify-center py-4">
-                <RefreshCw className="h-5 w-5 animate-spin text-muted-foreground" />
             </div>
         ) : (
             <div className="space-y-4">

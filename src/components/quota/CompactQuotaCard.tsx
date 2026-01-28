@@ -112,12 +112,7 @@ export function CompactQuotaCard({
         </div>
       </div>
 
-      {/* Loading spinner */}
-      {loading && (
-        <div className="flex justify-center py-2">
-          <RefreshCw className="h-4 w-4 animate-spin text-muted-foreground" />
-        </div>
-      )}
+
 
       {/* Error state */}
       {error && !loading && (

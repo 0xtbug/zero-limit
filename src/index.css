@@ -158,28 +158,18 @@ html.dark {
   --spacing: 0.25rem;
 }
 
-.no-scrollbar::-webkit-scrollbar {
-    display: none;
-}
-
-.no-scrollbar {
-    -ms-overflow-style: none;
-    /* IE and Edge */
-    scrollbar-width: none;
-    /* Firefox */
-}
 
 .dark {
-  --background: oklch(0.1450 0 0);
-  --foreground: oklch(0.9850 0 0);
-  --card: oklch(0.2050 0 0);
-  --card-foreground: oklch(0.9850 0 0);
-  --popover: oklch(0.2690 0 0);
-  --popover-foreground: oklch(0.9850 0 0);
-  --primary: oklch(0.9220 0 0);
-  --primary-foreground: oklch(0.2050 0 0);
-  --secondary: oklch(0.2690 0 0);
-  --secondary-foreground: oklch(0.9850 0 0);
+    --background: oklch(0.1450 0 0);
+    --foreground: oklch(0.9850 0 0);
+    --card: oklch(0.2050 0 0);
+    --card-foreground: oklch(0.9850 0 0);
+    --popover: oklch(0.2690 0 0);
+    --popover-foreground: oklch(0.9850 0 0);
+    --primary: oklch(0.9220 0 0);
+    --primary-foreground: oklch(0.2050 0 0);
+    --secondary: oklch(0.2690 0 0);
+    --secondary-foreground: oklch(0.9850 0 0);
   --muted: oklch(0.2690 0 0);
   --muted-foreground: oklch(0.7080 0 0);
   --accent: oklch(0.3710 0 0);
@@ -222,6 +212,17 @@ html.dark {
   --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
 }
 
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+.no-scrollbar {
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
+}
+
 @layer base {
     * {
         @apply border-border outline-ring/50;
@@ -229,6 +230,6 @@ html.dark {
 
     body {
         @apply bg-background text-foreground;
-    letter-spacing: var(--tracking-normal);
+        letter-spacing: var(--tracking-normal);
     }
 }

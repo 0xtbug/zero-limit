@@ -14,6 +14,7 @@ const ANTIGRAVITY_QUOTA_URLS = [
 
 const GEMINI_CLI_QUOTA_URL = 'https://cloudcode-pa.googleapis.com/v1internal:retrieveUserQuota';
 const CODEX_USAGE_URL = 'https://chatgpt.com/backend-api/wham/usage';
+const KIRO_USAGE_URL = 'https://codewhisperer.us-east-1.amazonaws.com/getUsageLimits?isEmailRequired=true&origin=AI_EDITOR';
 
 // Headers
 const ANTIGRAVITY_HEADERS = {
@@ -31,6 +32,13 @@ const CODEX_HEADERS = {
   Authorization: 'Bearer $TOKEN$',
   'Content-Type': 'application/json',
   'User-Agent': 'codex_cli_rs/0.76.0 (Debian 13.0.0; x86_64) WindowsTerminal'
+};
+
+const KIRO_HEADERS = {
+  Authorization: 'Bearer $TOKEN$',
+  'Content-Type': 'application/json',
+  'User-Agent': 'aws-sdk-js/3.0.0 KiroIDE-0.1.0 os/windows lang/js md/nodejs/18.0.0',
+  'x-amz-user-agent': 'aws-sdk-js/3.0.0'
 };
 
 import {
@@ -74,6 +82,14 @@ export interface GeminiCliQuotaResult {
   error?: string;
 }
 
+export interface KiroQuotaResult {
+  models: QuotaModel[];
+  plan?: string;
+  email?: string;
+  tokenExpiresAt?: string;
+  error?: string;
+}
+
 // Parse Antigravity models response
 function parseAntigravityModels(body: unknown): QuotaModel[] {
   const models: QuotaModel[] = [];
@@ -85,22 +101,19 @@ function parseAntigravityModels(body: unknown): QuotaModel[] {
   Object.entries(modelsData).forEach(([key, value]) => {
     const model = value as Record<string, unknown>;
 
-    // Skip if not a valid model object
     if (!model || typeof model !== 'object') return;
 
-    // Skip internal models (e.g. chat_20706) and gpt-oss models
-    if (model.isInternal === true || key.startsWith('chat_') || key.includes('gpt-oss')) return;
+    if (model.isInternal === true || key.startsWith('chat_') || key === 'tab_flash_lite_preview') return;
 
-    // Get display name or fallback to key
-    // Get display name or fallback to key
     let name = (model.displayName as string) || (model.display_name as string);
     if (!name) {
       if (key === 'rev19-uic3-1p') name = 'Gemini 2.5 Computer Use';
       else if (key === 'gemini-3-pro-image') name = 'Gemini 3 Pro Image';
+      else if (key === 'gemini-2.5-flash-lite') name = 'Gemini 2.5 Flash Lite';
+      else if (key === 'gemini-2.5-flash') name = 'Gemini 2.5 Flash';
       else name = key;
     }
 
-    // Handle nested quotaInfo if present (Antigravity v1internal)
     const quotaInfo = (model.quotaInfo ?? model.quota_info) as Record<string, unknown> | undefined;
     const source = quotaInfo ?? model;
 
@@ -114,16 +127,11 @@ function parseAntigravityModels(body: unknown): QuotaModel[] {
         if (!isNaN(parsed)) parsedRemaining = parsed;
     }
 
-    // Smart default based on quotaInfo presence:
-    // - If quotaInfo exists with resetTime but no remainingFraction = quota depleted (0%)
-    // - If no quotaInfo at all = no quota tracking, assume full (100%)
     if (parsedRemaining === null) {
       const hasResetTime = quotaInfo && (quotaInfo.resetTime || quotaInfo.reset_time);
       if (hasResetTime) {
-        // quotaInfo exists with resetTime but no remainingFraction = depleted
         parsedRemaining = 0;
       } else {
-        // No quota info = default to full quota
         parsedRemaining = 1;
       }
     }
@@ -138,6 +146,66 @@ function parseAntigravityModels(body: unknown): QuotaModel[] {
       name,
       percentage: Math.round(parsedRemaining * 100),
       resetTime
+    });
+  });
+
+  // Extract extra models from agentModelSorts and other lists
+  const extraIds = new Set<string>();
+
+  // Helper to add IDs to set
+  const addIds = (ids: unknown) => {
+    if (Array.isArray(ids)) {
+      ids.forEach(id => {
+        if (typeof id === 'string') extraIds.add(id);
+      });
+    }
+  };
+
+  // 1. agentModelSorts
+  if (Array.isArray(payload.agentModelSorts)) {
+    payload.agentModelSorts.forEach((sort: any) => {
+      if (sort?.groups && Array.isArray(sort.groups)) {
+        sort.groups.forEach((group: any) => {
+          addIds(group.modelIds);
+        });
+      }
+    });
+  }
+
+  // 2. Direct lists from body
+  addIds(payload.commandModelIds);
+  addIds(payload.tabModelIds);
+  addIds(payload.imageGenerationModelIds);
+  addIds(payload.mqueryModelIds);
+  addIds(payload.webSearchModelIds);
+  addIds(payload.defaultAgentModelId ? [payload.defaultAgentModelId] : []);
+
+  // Add extra models that are not already in the list
+  // We check against the existing models array by name/ID
+  // Since we used name mapping above, we should check if we can map back or just check if the ID was processed.
+  // Actually, standard keys in `modelsData` match IDs.
+
+  const existingKeys = new Set(Object.keys(modelsData));
+
+  extraIds.forEach(id => {
+    // Skip if already processed from payload.models
+    if (existingKeys.has(id)) return;
+
+    // Skip internal/special ones if needed (consistency with above)
+    if (id.startsWith('chat_') || id === 'tab_flash_lite_preview') return;
+
+    // determine display name
+    let name = id;
+    if (id === 'rev19-uic3-1p') name = 'Gemini 2.5 Computer Use';
+    else if (id === 'gemini-3-pro-image') name = 'Gemini 3 Pro Image';
+    else if (id === 'gemini-2.5-flash-lite') name = 'Gemini 2.5 Flash Lite';
+    else if (id === 'gemini-2.5-flash') name = 'Gemini 2.5 Flash';
+
+    // Add as available (100%)
+    models.push({
+      name,
+      percentage: 100,
+      resetTime: undefined
     });
   });
 
@@ -160,15 +228,12 @@ function parseCodexUsage(body: unknown): CodexQuotaResult {
     if (!windowProp || typeof windowProp !== 'object') return;
     const window = windowProp as CodexUsageWindow;
 
-    // Calculate remaining percentage from used_percent
     const usedRaw = window.used_percent ?? window.usedPercent;
     let percentage = 0;
 
     if (usedRaw !== null && usedRaw !== undefined) {
-      // If we have used percent, remaining is 100 - used
       percentage = Math.max(0, Math.min(100, 100 - usedRaw));
     } else {
-      // Fallback to count calculation if used_percent is missing
       const remaining = window.remaining_count ?? window.remainingCount ?? 0;
       const total = window.total_count ?? window.totalCount ?? 1;
       percentage = Math.round((Number(remaining) / Math.max(Number(total), 1)) * 100);
@@ -183,52 +248,11 @@ function parseCodexUsage(body: unknown): CodexQuotaResult {
     });
   };
 
-
-  // Actually, legacy mapping:
-  // primary -> 5-hour limit (usually)
-  // But wait, the payload has specific keys '5_hour_window' etc if raw,
-  // BUT parseCodexUsagePayload interface defines rate_limit as containing windows?
-  // Let's check the interface in utils/quota.ts I just added.
-
-  // The interface I added:
-  // rate_limit?: Record<string, CodexUsageWindow...
-  // BUT the payload from API (Step 699 original file) showed '5_hour_window' at root?
-  // No, parseCodexUsage in Step 699 lines 119 read `payload['5_hour_window']` from root.
-  // Legacy `parseCodexUsagePayload` (Step 744) does `JSON.parse`.
-  // Does legacy interface `CodexUsagePayload` have `5_hour_window`?
-  // Step 744 lines 15-26: `rate_limit`, `code_review_rate_limit`.
-
-  // Wait, if the API returns `5_hour_window` at root (as seemingly supported by my previous code),
-  // then the legacy interface definition might be for a *different* API version or I misunderstood the mapping.
-
-  // Re-reading user request sample:
-  // 5-hour limit
-  // Weekly limit
-
-  // If I look at `parseCodexUsage` in Step 699 (lines 119):
-  // const hourWindow = payload['5_hour_window'] ?? payload.fiveHourWindow;
-
-  // If legacy `parseCodexUsagePayload` doesn't have these keys, maybe it expects them inside `rate_limit`?
-
-  // Let's look at `buildCodexQuotaWindows` in `quotaConfigs.ts` (Step 694 line 153).
-  // It reads `payload.rate_limit`.
-  // `rate_limit` has `primary_window` and `secondary_window`.
-  // It gives label `codex_quota.primary_window`.
-  // Translation file not visible, but legacy UI usually maps Primary -> 5-Hour.
-
-  // So I should map:
-  // rate_limit.primary_window -> 5-hour limit
-  // rate_limit.secondary_window -> Weekly limit
-  // code_review_rate_limit.primary_window -> Code review limit
-
-  // I will follow this mapping.
-
   if (payload.rate_limit && typeof payload.rate_limit === 'object') {
      const rl = payload.rate_limit as Record<string, any>;
      processWindow('5-hour limit', rl.primary_window ?? rl.primaryWindow);
      processWindow('Weekly limit', rl.secondary_window ?? rl.secondaryWindow);
   } else {
-     // Fallback to root keys if rate_limit structure missing (backward compat or diff version)
      processWindow('5-hour limit', (payload['5_hour_window'] ?? payload.fiveHourWindow) as CodexUsageWindow);
      processWindow('Weekly limit', (payload['weekly_window'] ?? payload.weeklyWindow) as CodexUsageWindow);
   }
@@ -243,7 +267,6 @@ function parseCodexUsage(body: unknown): CodexQuotaResult {
   return { plan: planType, limits };
 }
 
-// Parse Gemini CLI quota response
 function parseGeminiCliQuota(body: unknown): GeminiCliQuotaResult {
   const payload = body as Record<string, unknown> | null;
   if (!payload) return { buckets: [] };
@@ -260,15 +283,13 @@ function parseGeminiCliQuota(body: unknown): GeminiCliQuotaResult {
   };
 }
 
-// Format reset time to friendly estimate (e.g., "4h 20m")
 function formatResetTime(isoString: string): string {
   return formatTimeUntil(isoString);
 }
 
-// Helper to format friendly error messages
 function formatQuotaError(result: { statusCode: number; body?: unknown; bodyText?: string }): string {
   const status = result.statusCode;
-  const rawMessage = getApiCallErrorMessage(result as any); // Cast to any to reuse helper or reimplement
+  const rawMessage = getApiCallErrorMessage(result as any);
 
   if (status === 401 || status === 403) {
     if (rawMessage.includes('token') || rawMessage.includes('auth') || rawMessage.includes('credential')) {
@@ -281,12 +302,100 @@ function formatQuotaError(result: { statusCode: number; body?: unknown; bodyText
     return 'Rate limit exceeded';
   }
 
-  // Truncate very long messages
   if (rawMessage.length > 100) {
     return rawMessage.substring(0, 97) + '...';
   }
 
   return rawMessage;
+}
+
+// Parse Kiro (AWS CodeWhisperer) quota response
+function parseKiroQuota(body: unknown): KiroQuotaResult {
+  const payload = body as Record<string, unknown> | null;
+  if (!payload) return { models: [] };
+
+  const models: QuotaModel[] = [];
+
+  const subscriptionInfo = payload.subscriptionInfo as Record<string, unknown> | undefined;
+  const plan = (subscriptionInfo?.subscriptionTitle as string) || 'Standard';
+
+  const breakdownList = payload.usageBreakdownList as Array<Record<string, unknown>> | undefined;
+  if (Array.isArray(breakdownList)) {
+    for (const breakdown of breakdownList) {
+      const displayName = (breakdown.displayName as string) || (breakdown.resourceType as string) || 'Usage';
+      const displayNamePlural = (breakdown.displayNamePlural as string) || `${displayName}s`;
+
+      let resetTimeStr: string | undefined;
+      const nextReset = (breakdown.nextDateReset as number) || (payload.nextDateReset as number);
+      if (nextReset) {
+        const resetDate = new Date(nextReset * 1000);
+        const now = new Date();
+        const diffMs = resetDate.getTime() - now.getTime();
+        if (diffMs > 0) {
+          const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+          const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+          resetTimeStr = days > 0 ? `${days}d ${hours}h` : `${hours}h 0m`;
+        }
+      }
+
+      const freeTrialInfo = breakdown.freeTrialInfo as Record<string, unknown> | undefined;
+      const hasActiveTrial = freeTrialInfo?.freeTrialStatus === 'ACTIVE';
+
+      if (hasActiveTrial && freeTrialInfo) {
+        const used = Math.round((freeTrialInfo.currentUsageWithPrecision as number) ?? (freeTrialInfo.currentUsage as number) ?? 0);
+        const total = Math.round((freeTrialInfo.usageLimitWithPrecision as number) ?? (freeTrialInfo.usageLimit as number) ?? 0);
+        const remaining = total - used;
+
+        let percentage = 0;
+        if (total > 0) {
+          percentage = Math.max(0, Math.round(remaining / total * 100));
+        }
+
+        let trialResetStr: string | undefined;
+        const expiry = freeTrialInfo.freeTrialExpiry as number | undefined;
+        if (expiry) {
+          const expiryDate = new Date(expiry * 1000);
+          const now = new Date();
+          const diffMs = expiryDate.getTime() - now.getTime();
+          if (diffMs > 0) {
+            const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            trialResetStr = days > 0 ? `${days}d ${hours}h` : `${hours}h 0m`;
+          }
+        }
+
+        models.push({
+          name: `Bonus ${displayNamePlural}`,
+          percentage,
+          resetTime: trialResetStr
+        });
+      }
+
+      const regularUsed = Math.round((breakdown.currentUsageWithPrecision as number) ?? (breakdown.currentUsage as number) ?? 0);
+      const regularTotal = Math.round((breakdown.usageLimitWithPrecision as number) ?? (breakdown.usageLimit as number) ?? 0);
+      const regularRemaining = regularTotal - regularUsed;
+
+      if (regularTotal > 0) {
+        const percentage = Math.max(0, Math.round(regularRemaining / regularTotal * 100));
+
+        const quotaName = hasActiveTrial ? `Base ${displayNamePlural}` : displayNamePlural;
+        models.push({
+          name: quotaName,
+          percentage,
+          resetTime: resetTimeStr
+        });
+      }
+    }
+  }
+
+  if (models.length === 0) {
+    models.push({ name: 'kiro-standard', percentage: 100, resetTime: undefined });
+  }
+
+  const userInfo = payload.userInfo as Record<string, unknown> | undefined;
+  const email = userInfo?.email as string | undefined;
+
+  return { models, plan, email };
 }
 
 export const quotaApi = {
@@ -368,6 +477,28 @@ export const quotaApi = {
       return { buckets: [], error: formatQuotaError(result) };
     } catch (err) {
       return { buckets: [], error: (err as Error).message };
+    }
+  },
+
+  /**
+   * Fetch Kiro (AWS CodeWhisperer) quota for an auth file
+   */
+  async fetchKiro(authIndex: string): Promise<KiroQuotaResult> {
+    try {
+      const result = await apiCallApi.request({
+        authIndex,
+        method: 'GET',
+        url: KIRO_USAGE_URL,
+        header: { ...KIRO_HEADERS }
+      });
+
+      if (result.statusCode >= 200 && result.statusCode < 300) {
+        return parseKiroQuota(result.body);
+      }
+
+      return { models: [], error: formatQuotaError(result) };
+    } catch (err) {
+      return { models: [], error: (err as Error).message };
     }
   }
 };

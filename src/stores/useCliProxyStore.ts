@@ -14,6 +14,7 @@ const STORAGE_KEY = 'cli-proxy-config';
 interface CliProxyState {
   exePath: string | null;
   isServerRunning: boolean;
+  isApiHealthy: boolean;
   autoStart: boolean;
   runInBackground: boolean;
   serverPid: number | null;
@@ -25,6 +26,7 @@ interface CliProxyState {
   startServer: () => Promise<boolean>;
   stopServer: () => Promise<void>;
   checkServerStatus: () => Promise<boolean>;
+  checkApiHealth: (apiBase?: string) => Promise<boolean>;
 }
 
 export const useCliProxyStore = create<CliProxyState>()(
@@ -32,6 +34,7 @@ export const useCliProxyStore = create<CliProxyState>()(
     (set, get) => ({
       exePath: null,
       isServerRunning: false,
+      isApiHealthy: false,
       autoStart: false,
       runInBackground: false,
       serverPid: null,
@@ -98,6 +101,7 @@ export const useCliProxyStore = create<CliProxyState>()(
 
         set({
           isServerRunning: false,
+          isApiHealthy: false,
           serverPid: null
         });
       },
@@ -109,6 +113,39 @@ export const useCliProxyStore = create<CliProxyState>()(
           return running;
         } catch (err) {
           console.error('Failed to check server status:', err);
+          return false;
+        }
+      },
+
+      checkApiHealth: async (apiBase?: string) => {
+        try {
+          // Default to localhost if no apiBase provided
+          let baseUrl = apiBase || 'http://localhost:8317';
+          // Remove trailing slash and /v0/management paths
+          baseUrl = baseUrl.replace(/\/?v0\/management\/?$/i, '').replace(/\/+$/, '');
+          // Remove protocol if missing, add http
+          if (!/^https?:\/\//i.test(baseUrl)) {
+            baseUrl = `http://${baseUrl}`;
+          }
+
+          const response = await fetch(baseUrl, {
+            method: 'GET',
+            headers: { 'Accept': 'application/json' },
+            signal: AbortSignal.timeout(5000)
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            // Check for CLI Proxy API signature
+            const isHealthy = data?.message === 'CLI Proxy API Server' || Array.isArray(data?.endpoints);
+            set({ isApiHealthy: isHealthy });
+            return isHealthy;
+          }
+          set({ isApiHealthy: false });
+          return false;
+        } catch (err) {
+          console.error('API health check failed:', err);
+          set({ isApiHealthy: false });
           return false;
         }
       },
