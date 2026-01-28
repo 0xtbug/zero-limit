@@ -18,3 +18,12 @@ export async function openExternalUrl(url: string): Promise<void> {
 export function isTauri(): boolean {
   return '__TAURI_INTERNALS__' in window;
 }
+
+/**
+ * Run Kiro CLI authentication
+ * @param exePath Path to CLI proxy executable
+ * @param authMethod 'google' | 'aws' | 'aws-authcode' | 'import'
+ */
+export async function runKiroAuth(exePath: string, authMethod: string): Promise<string> {
+  return invoke<string>('run_kiro_auth', { exePath, authMethod });
+}

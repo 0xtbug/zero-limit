@@ -5,6 +5,7 @@ import { MainRoutes } from '@/router/MainRoutes'
 import { LoginPage } from '@/pages/LoginPage'
 import Default from './layouts/default'
 import { invoke } from '@tauri-apps/api/core'
+import { Toaster } from '@/components/ui/sonner'
 
 function App() {
   const { isAuthenticated, restoreSession, connectionStatus } = useAuthStore()
@@ -49,6 +50,7 @@ function App() {
       <ProtectedRoute>
         <MainRoutes />
       </ProtectedRoute>
+      <Toaster position="top-right" />
     </Default>
   )
 }

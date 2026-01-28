@@ -5,6 +5,7 @@
 export * from './auth';
 export * from './authFile';
 export * from './api';
+export * from './usage';
 
 // Provider types - Array format for UI iteration
 export const PROVIDERS = [
@@ -12,6 +13,7 @@ export const PROVIDERS = [
   { id: 'codex', name: 'OpenAI Codex', requiresProjectId: false },
   { id: 'gemini-cli', name: 'Gemini CLI', requiresProjectId: true },
   { id: 'anthropic', name: 'Claude (Anthropic)', requiresProjectId: false },
+  { id: 'kiro', name: 'Kiro (CodeWhisperer)', requiresProjectId: false },
 ] as const;
 
 export type ProviderId = typeof PROVIDERS[number]['id'];

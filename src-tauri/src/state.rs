@@ -6,6 +6,8 @@ use std::sync::atomic::{AtomicBool, Ordering};
 
 /// CLI Proxy process state
 pub static CLI_PROXY_PROCESS: Mutex<Option<Child>> = Mutex::new(None);
+/// CLI Proxy executable name (for fallback kill)
+pub static CLI_PROXY_NAME: Mutex<Option<String>> = Mutex::new(None);
 
 /// Run in background setting (hide to tray on close) - default false, synced from frontend on startup
 pub static RUN_IN_BACKGROUND: AtomicBool = AtomicBool::new(false);

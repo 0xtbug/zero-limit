@@ -11,10 +11,7 @@ Before using ZeroLimit, you need CLIProxyAPI running either **locally** or on a 
 2. Download `cli-proxy-api.exe` for Windows
 3. Extract to a folder (e.g., `C:\CLIProxyAPI\`)
 
-### Option B: Remote Server
-If you have CLIProxyAPI running on a VPS with HTTPS:
-- You only need the API URL (e.g., `https://llm.yourdomain.com`)
-- No local installation required
+> if you want to use kirocode support, you need to download [CLIProxyAPI Plus Version](https://github.com/router-for-me/CLIProxyAPIPlus/releases)
 
 ## Getting Started
 
