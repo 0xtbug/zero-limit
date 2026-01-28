@@ -30,6 +30,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 import { Activity, Users, TrendingDown, BarChart3, Coins, ChevronRight, ChevronDown, Loader2, RefreshCw } from 'lucide-react';
 import {
 
@@ -44,10 +45,10 @@ type TimeGrouping = 'hour' | 'day';
 
 export function DashboardPage() {
   const { t } = useTranslation();
-  const { connectionStatus, checkAuth, updateConnectionStatus } = useAuthStore();
+  const { connectionStatus, checkAuth, updateConnectionStatus, apiBase } = useAuthStore();
   const { fetchConfig } = useConfigStore();
   const { usage, loading: usageLoading, fetchUsage } = useUsageStore();
-  const { isServerRunning, checkServerStatus } = useCliProxyStore();
+  const { isApiHealthy, checkApiHealth } = useCliProxyStore();
 
   const [activeAccountsCount, setActiveAccountsCount] = useState<number>(0);
   const [requestTimeGrouping, setRequestTimeGrouping] = useState<TimeGrouping>('day');
@@ -107,19 +108,19 @@ export function DashboardPage() {
     }
   }, [fetchConfig, fetchUsage]);
 
-  // Check server status on mount
+  // Check API health on mount
   useEffect(() => {
-    checkServerStatus();
-  }, [checkServerStatus]);
+    checkApiHealth(apiBase);
+  }, [checkApiHealth, apiBase]);
 
-  // Re-check auth when proxy status changes
+  // Re-check auth when API health changes
   useEffect(() => {
-    if (isServerRunning) {
+    if (isApiHealthy) {
       checkAuth();
     } else {
       updateConnectionStatus('disconnected');
     }
-  }, [isServerRunning, checkAuth, updateConnectionStatus]);
+  }, [isApiHealthy, checkAuth, updateConnectionStatus]);
 
   useEffect(() => {
     if (connectionStatus === 'connected') {
@@ -876,7 +877,8 @@ export function DashboardPage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="rounded-md border">
+                    <ScrollArea className="h-[400px] rounded-md border" type="always">
+                      <div className="min-w-[500px]">
                       <Table>
                         <TableHeader>
                           <TableRow className="bg-muted/50">
@@ -959,7 +961,9 @@ export function DashboardPage() {
                           )}
                         </TableBody>
                       </Table>
-                    </div>
+                      </div>
+                      <ScrollBar orientation="horizontal" />
+                    </ScrollArea>
                   </CardContent>
                 </Card>
 
@@ -971,7 +975,8 @@ export function DashboardPage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="overflow-auto max-h-[400px] rounded-lg border border-border/50">
+                    <ScrollArea className="h-[400px] rounded-lg border border-border/50" type="always">
+                      <div className="min-w-[500px]">
                       <Table>
                         <TableHeader className="bg-muted/30 sticky top-0">
                           <TableRow>
@@ -1012,7 +1017,9 @@ export function DashboardPage() {
                           )}
                         </TableBody>
                       </Table>
-                    </div>
+                      </div>
+                      <ScrollBar orientation="horizontal" />
+                    </ScrollArea>
                   </CardContent>
                 </Card>
               </div>

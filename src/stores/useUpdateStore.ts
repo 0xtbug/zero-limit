@@ -6,6 +6,7 @@
 import { create } from 'zustand';
 import { check, Update } from '@tauri-apps/plugin-updater';
 import { relaunch } from '@tauri-apps/plugin-process';
+import { toast } from 'sonner';
 
 type UpdateStatus = 'idle' | 'checking' | 'available' | 'downloading' | 'ready' | 'error' | 'uptodate';
 
@@ -47,14 +48,26 @@ export const useUpdateStore = create<UpdateState & UpdateActions>((set, get) => 
       const update = await check();
 
       if (update) {
+        const version = update.version;
+        const body = update.body;
+
         set({
           status: 'available',
           updateInfo: {
-            version: update.version,
+            version,
             date: update.date ?? null,
-            body: update.body ?? null,
+            body: body ?? null,
           },
           pendingUpdate: update,
+        });
+
+        toast.info("Update Available", {
+            description: `Version ${version} is available.`,
+            action: {
+                label: "Update Now",
+                onClick: () => get().downloadAndInstall()
+            },
+            duration: 10000,
         });
       } else {
         set({ status: 'uptodate', updateInfo: null });

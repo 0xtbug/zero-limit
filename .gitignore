@@ -32,3 +32,4 @@ Cargo.lock
 ~/.tauri/
 *.key
 *.key.pub
+.env

@@ -49,6 +49,13 @@ pub async fn start_cli_proxy(exe_path: String) -> CommandResult<u32> {
     let pid = child.id();
     *guard = Some(child);
 
+    // Store executable name for cleanup
+    if let Ok(mut name_guard) = crate::state::CLI_PROXY_NAME.lock() {
+        if let Some(name) = exe.file_name().and_then(|n| n.to_str()) {
+            *name_guard = Some(name.to_string());
+        }
+    }
+
     Ok(pid)
 }
 
@@ -79,6 +86,26 @@ pub async fn stop_cli_proxy() -> CommandResult<()> {
     }
 
     *guard = None;
+
+    // Fallback: kill by name if available
+    if let Ok(mut name_guard) = crate::state::CLI_PROXY_NAME.lock() {
+        if let Some(ref name) = *name_guard {
+             if name.to_lowercase().contains("cliproxy") {
+                #[cfg(windows)]
+                {
+                    use std::process::Command;
+                    use std::os::windows::process::CommandExt;
+                    const CREATE_NO_WINDOW: u32 = 0x08000000;
+
+                    let _ = Command::new("taskkill")
+                        .args(["/F", "/T", "/IM", name])
+                        .creation_flags(CREATE_NO_WINDOW)
+                        .output();
+                }
+            }
+        }
+        *name_guard = None;
+    }
     Ok(())
 }
 

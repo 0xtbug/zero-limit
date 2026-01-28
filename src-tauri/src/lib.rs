@@ -37,6 +37,27 @@ fn cleanup_on_exit() {
         }
         *guard = None;
     }
+
+    // Fallback: kill by name if available (catches detached processes/launchers)
+    if let Ok(mut name_guard) = state::CLI_PROXY_NAME.lock() {
+        if let Some(ref name) = *name_guard {
+            // Safety: Only kill if name looks like our proxy to avoid collateral damage
+            if name.to_lowercase().contains("cliproxy") {
+                #[cfg(windows)]
+                {
+                    use std::process::Command;
+                    use std::os::windows::process::CommandExt;
+                    const CREATE_NO_WINDOW: u32 = 0x08000000;
+
+                    let _ = Command::new("taskkill")
+                        .args(["/F", "/T", "/IM", name])
+                        .creation_flags(CREATE_NO_WINDOW)
+                        .output();
+                }
+            }
+        }
+        *name_guard = None;
+    }
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

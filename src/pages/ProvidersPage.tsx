@@ -278,7 +278,7 @@ export function ProvidersPage() {
   return (
     <div className="space-y-8">
         <AlertDialog open={!!fileToDelete} onOpenChange={(open) => !open && setFileToDelete(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="border-border/50">
           <AlertDialogHeader>
                     <AlertDialogTitle>{t('common.confirm', 'Are you sure?')}</AlertDialogTitle>
                     <AlertDialogDescription>
@@ -287,7 +287,7 @@ export function ProvidersPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
-            <AlertDialogAction onClick={executeDelete} className="bg-destructive hover:bg-destructive/90 text-white">
+            <AlertDialogAction onClick={executeDelete} className="bg-red-500 hover:bg-red-600 text-white">
               {t('common.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>

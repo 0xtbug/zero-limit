@@ -187,22 +187,6 @@ class ApiClient {
   }
 
   /**
-   * PUT request
-   */
-  async put<T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
-    const response = await this.instance.put<T>(url, data, config);
-    return response.data;
-  }
-
-  /**
-   * PATCH request
-   */
-  async patch<T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
-    const response = await this.instance.patch<T>(url, data, config);
-    return response.data;
-  }
-
-  /**
    * DELETE request
    */
   async delete<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T> {
@@ -215,20 +199,6 @@ class ApiClient {
    */
   async getRaw(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse> {
     return this.instance.get(url, config);
-  }
-
-  /**
-   * Send FormData
-   */
-  async postForm<T = unknown>(url: string, formData: FormData, config?: AxiosRequestConfig): Promise<T> {
-    const response = await this.instance.post<T>(url, formData, {
-      ...config,
-      headers: {
-        ...(config?.headers || {}),
-        'Content-Type': 'multipart/form-data'
-      }
-    });
-    return response.data;
   }
 
   /**
