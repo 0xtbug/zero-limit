@@ -16,7 +16,7 @@ A Tauri-based alternative to Quotio for Windows
 
 ## 🎯 What is ZeroLimit?
 
-ZeroLimit is a **lightweight Windows desktop application** for monitoring AI coding assistant quotas. Track your usage across Antigravity, Anthropic Claude, Codex (OpenAI), and Gemini CLI accounts in one dashboard.
+ZeroLimit is a **lightweight Windows desktop application** for monitoring AI coding assistant quotas using [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI). Track your usage across Antigravity, Anthropic Claude, Codex (OpenAI), and Gemini CLI accounts in one dashboard.
 
 Unlike [Quotio](https://github.com/nguyenphutrong/quotio) (macOS-only, Swift), ZeroLimit is built with **Tauri + React + Rust** and runs on **Windows**.
 
@@ -95,6 +95,26 @@ pnpm run tauri build
 3. Commit your Changes (git commit -m 'Add new feature')
 4. Push to the Branch (git push origin feature/new-feature)
 5. Open a Pull Request
+
+## ⭐ Star History
+<picture>
+  <source
+    media="(prefers-color-scheme: dark)"
+    srcset="
+      https://api.star-history.com/svg?repos=0xtbug/zero-limit&type=Date&theme=dark
+    "
+  />
+  <source
+    media="(prefers-color-scheme: light)"
+    srcset="
+      https://api.star-history.com/svg?repos=0xtbug/zero-limit&type=Date
+    "
+  />
+  <img
+    alt="Star History Chart"
+    src="https://api.star-history.com/svg?repos=0xtbug/zero-limit&type=Date"
+  />
+</picture>
 
 ## 📄 License
 
