@@ -363,22 +363,29 @@ export function ProvidersPage() {
 
                         let rawName: string;
                         if (p.includes('kiro')) {
-                          const filename = file.filename || file.id || '';
-                          const match = filename.match(/kiro-(\w+)/i);
-
-                          if (match && match[1]) {
-                            const method = match[1].charAt(0).toUpperCase() + match[1].slice(1).toLowerCase();
-                            rawName = `Kiro (${method})`;
+                          // First try top-level email/account fields
+                          const topEmail = (file.email as string) || (file.account as string);
+                          if (topEmail && topEmail.trim() !== '') {
+                            rawName = formatName(topEmail);
                           } else {
-                            const metaEmail = (file.metadata?.email as string) || (file['email'] as string);
-                            const authMethod = (file.metadata?.provider as string) || (file.metadata?.auth_method as string);
+                            // Fallback to filename parsing or metadata
+                            const filename = file.filename || file.id || '';
+                            const match = filename.match(/kiro-(\\w+)/i);
 
-                            if (metaEmail && metaEmail.trim() !== '') {
-                              rawName = formatName(metaEmail);
-                            } else if (authMethod) {
-                              rawName = `Kiro (${authMethod})`;
+                            if (match && match[1]) {
+                              const method = match[1].charAt(0).toUpperCase() + match[1].slice(1).toLowerCase();
+                              rawName = `Kiro (${method})`;
                             } else {
-                              rawName = 'Kiro';
+                              const metaEmail = (file.metadata?.email as string);
+                              const authMethod = (file.metadata?.provider as string) || (file.metadata?.auth_method as string);
+
+                              if (metaEmail && metaEmail.trim() !== '') {
+                                rawName = formatName(metaEmail);
+                              } else if (authMethod) {
+                                rawName = `Kiro (${authMethod})`;
+                              } else {
+                                rawName = 'Kiro';
+                              }
                             }
                           }
                         } else {
