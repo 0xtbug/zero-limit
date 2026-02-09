@@ -134,6 +134,10 @@
   },
   "usageStats": {
     "title": "Statistik Penggunaan",
+    "settingsDesc": "Konfigurasi pengumpulan dan tampilan statistik penggunaan",
+    "enabled": "Aktifkan Statistik Penggunaan",
+    "enabledDesc": "Kumpulkan dan tampilkan statistik penggunaan di Dasbor",
+    "disabledMessage": "Statistik penggunaan dinonaktifkan. Aktifkan di Pengaturan untuk melihat data penggunaan Anda.",
     "totalRequests": "Total Permintaan",
     "successfulRequests": "Permintaan Berhasil",
     "failedRequests": "Permintaan Gagal",

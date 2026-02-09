@@ -133,6 +133,10 @@
   },
   "usageStats": {
     "title": "사용량 통계",
+    "settingsDesc": "사용량 통계 수집 및 표시 설정",
+    "enabled": "사용량 통계 활성화",
+    "enabledDesc": "대시보드에서 사용량 통계 수집 및 표시",
+    "disabledMessage": "사용량 통계가 비활성화되어 있습니다. 설정에서 활성화하여 사용 데이터를 확인하세요.",
     "totalRequests": "총 요청 수",
     "successfulRequests": "성공 요청",
     "failedRequests": "실패 요청",

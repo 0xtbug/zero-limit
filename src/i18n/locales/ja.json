@@ -133,6 +133,10 @@
   },
   "usageStats": {
     "title": "使用状況",
+    "settingsDesc": "使用状況統計の収集と表示を設定",
+    "enabled": "使用状況統計を有効にする",
+    "enabledDesc": "ダッシュボードで使用状況統計を収集・表示",
+    "disabledMessage": "使用状況統計は無効です。設定で有効にすると使用データを確認できます。",
     "totalRequests": "総リクエスト数",
     "successfulRequests": "成功リクエスト",
     "failedRequests": "失敗リクエスト",

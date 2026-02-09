@@ -133,6 +133,10 @@
   },
   "usageStats": {
     "title": "Thống kê sử dụng",
+    "settingsDesc": "Cấu hình thu thập và hiển thị thống kê sử dụng",
+    "enabled": "Bật thống kê sử dụng",
+    "enabledDesc": "Thu thập và hiển thị thống kê sử dụng trên Bảng điều khiển",
+    "disabledMessage": "Thống kê sử dụng đã bị tắt. Bật trong Cài đặt để xem dữ liệu sử dụng của bạn.",
     "totalRequests": "Tổng số yêu cầu",
     "successfulRequests": "Yêu cầu thành công",
     "failedRequests": "Yêu cầu thất bại",

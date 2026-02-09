@@ -134,6 +134,10 @@
   },
   "usageStats": {
     "title": "Usage Statistics",
+    "settingsDesc": "Configure usage statistics collection and display",
+    "enabled": "Enable Usage Statistics",
+    "enabledDesc": "Collect and display usage statistics in the Dashboard",
+    "disabledMessage": "Usage statistics are disabled. Enable them in Settings to view your usage data.",
     "totalRequests": "Total Requests",
     "successfulRequests": "Success Requests",
     "failedRequests": "Failed Requests",

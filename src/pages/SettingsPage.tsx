@@ -2,19 +2,38 @@
  * Settings Page
  */
 
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useThemeStore, useLanguageStore, useAuthStore, useCliProxyStore } from '@/stores';
+import { useThemeStore, useLanguageStore, useAuthStore, useCliProxyStore, useConfigStore } from '@/stores';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Sun, Moon, Monitor, LogOut, Globe, Server, FolderOpen, Play, Square, CheckCircle2 } from 'lucide-react';
+import { Sun, Moon, Monitor, LogOut, Globe, Server, FolderOpen, Play, Square, CheckCircle2, BarChart3, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 export function SettingsPage() {
   const { t } = useTranslation();
   const { theme, setTheme } = useThemeStore();
   const { language, setLanguage } = useLanguageStore();
-  const { logout } = useAuthStore();
+  const { logout, connectionStatus } = useAuthStore();
   const { exePath, autoStart, runInBackground, isServerRunning, setAutoStart, setRunInBackground, browseForExe, startServer, stopServer } = useCliProxyStore();
+  const { config, fetchConfig, updateUsageStatistics, updatingUsageStats } = useConfigStore();
+
+  useEffect(() => {
+    if (connectionStatus === 'connected' && !config) {
+      fetchConfig();
+    }
+  }, [connectionStatus, config, fetchConfig]);
+
+  const usageStatisticsEnabled = Boolean(config?.['usage-statistics-enabled'] ?? true);
+
+  const handleToggleUsageStats = async () => {
+    try {
+      await updateUsageStatistics(!usageStatisticsEnabled);
+    } catch {
+      toast.error(t('settings.usageStatsError'));
+    }
+  };
 
   const themeOptions = [
     { value: 'light', label: t('settings.light'), icon: Sun },
@@ -138,6 +157,47 @@ export function SettingsPage() {
                 </Button>
               )
             )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Usage Statistics Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BarChart3 className="h-5 w-5" />
+            {t('usageStats.title')}
+          </CardTitle>
+          <CardDescription>{t('usageStats.settingsDesc')}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label>{t('usageStats.enabled')}</Label>
+              <p className="text-xs text-muted-foreground">
+                {t('usageStats.enabledDesc')}
+              </p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={usageStatisticsEnabled}
+              onClick={handleToggleUsageStats}
+              disabled={updatingUsageStats || connectionStatus !== 'connected'}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                usageStatisticsEnabled ? 'bg-primary' : 'bg-muted'
+              }`}
+            >
+              {updatingUsageStats ? (
+                <Loader2 className="h-4 w-4 animate-spin mx-auto text-muted-foreground" />
+              ) : (
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    usageStatisticsEnabled ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              )}
+            </button>
           </div>
         </CardContent>
       </Card>
