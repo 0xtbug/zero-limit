@@ -3,7 +3,7 @@
  * Combined view for Connected Accounts and Adding New Providers
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores';
 import { authFilesApi } from '@/services/api/authFiles';
@@ -23,7 +23,9 @@ import {
   ExternalLink,
   ClipboardCopy,
   Eye,
-  EyeOff
+  EyeOff,
+  ChevronDown,
+  ChevronRight
 } from 'lucide-react';
 import { openExternalUrl, isTauri } from '@/services/tauri';
 import {
@@ -37,6 +39,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { maskEmail } from '@/utils/privacy';
+import { toast } from 'sonner';
 
 // --- Types ---
 
@@ -111,6 +114,48 @@ export function ProvidersPage() {
   // Privacy state
   const [isPrivacyMode, setIsPrivacyMode] = useState(true);
 
+  // Expanded state for provider groups
+  const [expandedProviders, setExpandedProviders] = useState<Record<string, boolean>>({
+    antigravity: true,
+    codex: true,
+    'gemini-cli': true,
+    kiro: true,
+    copilot: true
+  });
+
+  // Group files by provider type
+  const groupedFiles = useMemo(() => {
+    const groups: Record<string, { displayName: string; files: AuthFile[]; iconInfo: { path: string; needsInvert: boolean } }> = {
+      antigravity: { displayName: 'Antigravity', files: [], iconInfo: { path: '/antigravity/antigravity.png', needsInvert: false } },
+      codex: { displayName: 'Codex (OpenAI)', files: [], iconInfo: { path: '/openai/openai.png', needsInvert: false } },
+      'gemini-cli': { displayName: 'Gemini CLI', files: [], iconInfo: { path: '/gemini/gemini.png', needsInvert: false } },
+      kiro: { displayName: 'Kiro (CodeWhisperer)', files: [], iconInfo: { path: '/kiro/kiro.png', needsInvert: false } },
+      copilot: { displayName: 'GitHub Copilot', files: [], iconInfo: { path: '/copilot/copilot.png', needsInvert: true } }
+    };
+
+    files.forEach(file => {
+      const p = (file.provider || file.filename || '').toLowerCase();
+      if (p.includes('antigravity')) {
+        groups.antigravity.files.push(file);
+      } else if (p.includes('codex') || p.includes('openai')) {
+        groups.codex.files.push(file);
+      } else if (p.includes('gemini')) {
+        groups['gemini-cli'].files.push(file);
+      } else if (p.includes('kiro')) {
+        groups.kiro.files.push(file);
+      } else if (p.includes('copilot') || p.includes('github')) {
+        groups.copilot.files.push(file);
+      }
+    });
+
+    // Return only groups with files
+    return Object.entries(groups).filter(([, group]) => group.files.length > 0);
+  }, [files]);
+
+  const toggleProviderExpanded = (providerId: string) => {
+    setExpandedProviders(prev => ({ ...prev, [providerId]: !prev[providerId] }));
+  };
+
   // --- Cleanup ---
   useEffect(() => {
     return () => {
@@ -175,14 +220,17 @@ export function ProvidersPage() {
         const status = await oauthApi.getAuthStatus(state);
         if (status.status === 'ok' || status.completed) {
           updateProviderState(providerId, { status: 'success' });
+          toast.success(t('providers.authSuccess') || 'Provider connected successfully!');
           stopPolling(providerId);
           setSelectedProvider(null);
           loadFiles();
         } else if (status.status === 'error' || status.failed) {
+          const errorMsg = status.error || status.message || 'Authentication failed';
           updateProviderState(providerId, {
             status: 'error',
-            error: status.error || status.message || 'Authentication failed'
+            error: errorMsg
           });
+          toast.error(errorMsg);
           stopPolling(providerId);
         }
       } catch (err) {
@@ -225,6 +273,7 @@ export function ProvidersPage() {
             // Detect if a new kiro file was added
             if (currentKiroFiles.length > initialKiroCount) {
               updateProviderState(providerId, { status: 'success' });
+              toast.success(t('providers.authSuccess') || 'Provider connected successfully!');
               stopPolling(providerId);
               setSelectedProvider(null);
               setFiles(currentFiles);
@@ -281,6 +330,7 @@ export function ProvidersPage() {
 
                 if (currentGithubFiles.length > initialCount) {
                   updateProviderState(providerId, { status: 'success' });
+                  toast.success(t('providers.authSuccess') || 'Provider connected successfully!');
                   stopPolling(providerId);
                   setSelectedProvider(null);
                   setFiles(currentFiles);
@@ -292,10 +342,12 @@ export function ProvidersPage() {
             pollingTimers.current[providerId] = pollTimer;
           }
         } catch (err) {
+          const errorMsg = (err as Error).message;
           updateProviderState(providerId, {
             status: 'error',
-            error: (err as Error).message
+            error: errorMsg
           });
+          toast.error(errorMsg);
         }
         return;
       }
@@ -315,10 +367,12 @@ export function ProvidersPage() {
         startPolling(providerId, state);
       }
     } catch (err) {
+      const errorMsg = (err as Error).message;
       updateProviderState(providerId, {
         status: 'error',
-        error: (err as Error).message,
+        error: errorMsg,
       });
+      toast.error(errorMsg);
     }
   };
 
@@ -341,20 +395,24 @@ export function ProvidersPage() {
       stopPolling(selectedProvider);
       setCallbackUrl('');
       setSelectedProvider(null);
+      toast.success(t('providers.authSuccess') || 'Provider connected successfully!');
       loadFiles();
     } catch (err) {
+      const errorMsg = (err as Error).message;
       updateProviderState(selectedProvider, {
         status: 'error',
-        error: (err as Error).message,
+        error: errorMsg,
       });
+      toast.error(errorMsg);
     }
   };
 
   const copyToClipboard = useCallback(async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
+      toast.success(t('common.copied') || 'Copied to clipboard!');
     } catch { /* ignore */ }
-  }, []);
+  }, [t]);
 
   if (!isAuthenticated) {
      return (
@@ -426,89 +484,111 @@ export function ProvidersPage() {
                 </div>
             )}
 
-            <div className="space-y-1">
-                 {files.map((file) => {
-                        const iconInfo = getProviderIconInfo(file.provider || '');
-                        const p = (file.provider || '').toLowerCase();
+            <div className="space-y-2">
+                 {groupedFiles.map(([providerId, group]) => {
+                   const isExpanded = expandedProviders[providerId] ?? true;
 
-                        let rawName: string;
-                        if (p.includes('kiro')) {
-                          // First try top-level email/account fields
-                          const topEmail = (file.email as string) || (file.account as string);
-                          if (topEmail && topEmail.trim() !== '') {
-                            rawName = formatName(topEmail);
-                          } else {
-                            // Fallback to filename parsing or metadata
-                            const filename = file.filename || file.id || '';
-                            const match = filename.match(/kiro-(\\w+)/i);
+                   return (
+                     <div key={providerId} className="border rounded-lg overflow-hidden">
+                       {/* Provider Group Header */}
+                       <button
+                         onClick={() => toggleProviderExpanded(providerId)}
+                         className="w-full flex items-center gap-3 p-3 hover:bg-muted/50 transition-colors"
+                       >
+                         {isExpanded ? (
+                           <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                         ) : (
+                           <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                         )}
+                         <img
+                           src={group.iconInfo.path}
+                           alt={group.displayName}
+                           className={`h-5 w-5 object-contain ${group.iconInfo.needsInvert ? 'invert-on-dark' : ''}`}
+                         />
+                         <span className="font-medium text-sm">{group.displayName}</span>
+                         <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
+                           {group.files.length}
+                         </Badge>
+                       </button>
 
-                            if (match && match[1]) {
-                              const method = match[1].charAt(0).toUpperCase() + match[1].slice(1).toLowerCase();
-                              rawName = `Kiro (${method})`;
-                            } else {
-                              const metaEmail = (file.metadata?.email as string);
-                              const authMethod = (file.metadata?.provider as string) || (file.metadata?.auth_method as string);
+                       {/* Expanded Files List */}
+                       {isExpanded && (
+                         <div className="border-t bg-muted/20">
+                           {group.files.map((file) => {
+                             const p = (file.provider || '').toLowerCase();
 
-                              if (metaEmail && metaEmail.trim() !== '') {
-                                rawName = formatName(metaEmail);
-                              } else if (authMethod) {
-                                rawName = `Kiro (${authMethod})`;
-                              } else {
-                                rawName = 'Kiro';
-                              }
-                            }
-                          }
-                        } else {
-                          rawName = formatName((file.metadata?.email as string) || (file.account as string) || file.filename);
-                        }
-                        const email = isPrivacyMode ? maskEmail(rawName) : rawName;
+                             let rawName: string;
+                             if (p.includes('kiro')) {
+                               const topEmail = (file.email as string) || (file.account as string);
+                               if (topEmail && topEmail.trim() !== '') {
+                                 rawName = formatName(topEmail);
+                               } else {
+                                 const filename = file.filename || file.id || '';
+                                 const match = filename.match(/kiro-(\w+)/i);
+                                 if (match && match[1]) {
+                                   const method = match[1].charAt(0).toUpperCase() + match[1].slice(1).toLowerCase();
+                                   rawName = `Kiro (${method})`;
+                                 } else {
+                                   const metaEmail = (file.metadata?.email as string);
+                                   const authMethod = (file.metadata?.provider as string) || (file.metadata?.auth_method as string);
+                                   if (metaEmail && metaEmail.trim() !== '') {
+                                     rawName = formatName(metaEmail);
+                                   } else if (authMethod) {
+                                     rawName = `Kiro (${authMethod})`;
+                                   } else {
+                                     rawName = 'Kiro';
+                                   }
+                                 }
+                               }
+                             } else {
+                               rawName = formatName((file.metadata?.email as string) || (file.account as string) || file.filename);
+                             }
+                             const displayName = isPrivacyMode ? maskEmail(rawName) : rawName;
 
-                        return (
-                        <div key={file.id} className="group flex items-center justify-between p-3 hover:bg-muted/50 rounded-lg transition-colors">
-                            <div className="flex items-center gap-4">
-                                {/* Provider Icon */}
-                                <div className="flex h-8 w-8 items-center justify-center rounded-sm overflow-hidden bg-transparent">
-                                       <img
-                                        src={iconInfo.path}
-                                        alt={file.provider}
-                                        className={`h-full w-full object-contain ${iconInfo.needsInvert ? 'invert-on-dark' : ''}`}
-                                        onError={(e) => {
-                                            (e.target as HTMLImageElement).style.display = 'none';
-                                            ((e.target as HTMLImageElement).nextSibling as HTMLElement).style.display = 'block';
-                                        }}
-                                       />
-                                       <span className="hidden font-bold">{file.provider.charAt(0).toUpperCase()}</span>
-                                </div>
+                             return (
+                               <div
+                                 key={file.id}
+                                 className="group flex items-center justify-between pl-10 pr-3 py-2 hover:bg-muted/50 transition-colors"
+                               >
+                                 <div className="flex items-center gap-3">
+                                   <img
+                                     src={group.iconInfo.path}
+                                     alt={file.provider}
+                                     className={`h-5 w-5 object-contain ${group.iconInfo.needsInvert ? 'invert-on-dark' : ''}`}
+                                   />
+                                   <div>
+                                     <div className="font-medium text-sm text-foreground">{displayName}</div>
+                                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                       <span>{file.provider}</span>
+                                       <span className="text-[10px]">•</span>
+                                       <span>{t('providers.active')}</span>
+                                     </div>
+                                   </div>
+                                 </div>
 
-                                <div>
-                                    <div className="font-medium text-sm text-foreground">{email}</div>
-                                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                         <span>{file.provider}</span>
-                                         <span className="text-[10px]">•</span>
-                                         <span className="text-muted-foreground">{t('providers.active')}</span>
-                                    </div>
-                                </div>
-                            </div>
+                                 <Button
+                                   size="icon"
+                                   variant="ghost"
+                                   className="h-8 w-8 text-destructive hover:bg-destructive/10 opacity-80 group-hover:opacity-100"
+                                   onClick={() => setFileToDelete(file.id)}
+                                   title={t('common.delete')}
+                                 >
+                                   <Trash2 className="h-4 w-4" />
+                                 </Button>
+                               </div>
+                             );
+                           })}
+                         </div>
+                       )}
+                     </div>
+                   );
+                 })}
 
-                            <div className="flex items-center gap-2 opacity-80 group-hover:opacity-100">
-                                <Button
-                                  size="icon"
-                                  variant="ghost"
-                                  className="h-8 w-8 text-destructive hover:bg-destructive/10"
-                                  onClick={() => setFileToDelete(file.id)}
-                                  title={t('common.delete')}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                            </div>
-                        </div>
-                     )})}
-
-                     {loadingFiles && (
-                        <div className="flex justify-center py-4">
-                            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                        </div>
-                     )}
+                 {loadingFiles && (
+                   <div className="flex justify-center py-4">
+                     <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                   </div>
+                 )}
             </div>
         </section>
 
@@ -643,7 +723,16 @@ export function ProvidersPage() {
                     return (
                         <div
                             key={provider.id}
-                            className="flex items-center justify-between rounded-lg border bg-card p-3 transition-colors hover:bg-accent/50"
+                            className="flex items-center justify-between rounded-lg border bg-card p-3 transition-colors hover:bg-accent/50 cursor-pointer"
+                            onClick={() => {
+                                if (provider.requiresProjectId) {
+                                     setSelectedProvider(provider.id);
+                                     setProjectInput(''); // Reset input
+                                     updateProviderState(provider.id, { status: 'idle' });
+                                } else {
+                                     startAuth(provider.id);
+                                }
+                            }}
                         >
                              <div className="flex items-center gap-3">
                                  {/* Icon */}
@@ -666,24 +755,11 @@ export function ProvidersPage() {
 
                              <div className="flex items-center gap-2">
                                 {isSuccess && <Badge className="bg-green-500">{t('auth.connected')}</Badge>}
-                                <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    className="h-8 w-8 rounded-full border p-0 hover:bg-accent hover:text-accent-foreground"
-                                    onClick={() => {
-                                        if (provider.requiresProjectId) {
-                                             setSelectedProvider(provider.id);
-                                             setProjectInput(''); // Reset input
-                                             // Don't start auth yet, wait for input
-                                             updateProviderState(provider.id, { status: 'idle' });
-                                        } else {
-                                             startAuth(provider.id);
-                                        }
-                                    }}
-                                    title={t('providers.connect')}
+                                <div
+                                    className="h-8 w-8 rounded-full border p-0 flex items-center justify-center hover:bg-accent hover:text-accent-foreground"
                                 >
                                     <Plus className="h-4 w-4" />
-                                </Button>
+                                </div>
                              </div>
                         </div>
                     );

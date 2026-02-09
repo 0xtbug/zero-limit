@@ -66,7 +66,11 @@
     "completeLogin": "브라우저에서 로그인을 완료하세요",
     "openLink": "링크 열기",
     "verify": "확인",
-    "manualCallback": "유효한 콜백이 자동으로 감지되지 않는 경우:"
+    "manualCallback": "유효한 콜백이 자동으로 감지되지 않는 경우:",
+    "authSuccess": "제공자가 성공적으로 연결되었습니다!"
+  },
+  "oauth": {
+    "pasteCallback": "콜백 URL을 여기에 붙여넣기..."
   },
   "quota": {
     "title": "할당량",

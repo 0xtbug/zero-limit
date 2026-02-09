@@ -66,7 +66,11 @@
     "completeLogin": "在浏览器中完成登录",
     "openLink": "打开链接",
     "verify": "验证",
-    "manualCallback": "如果未自动检测到回调："
+    "manualCallback": "如果未自动检测到回调：",
+    "authSuccess": "提供商连接成功！"
+  },
+  "oauth": {
+    "pasteCallback": "在此粘贴回调 URL..."
   },
   "quota": {
     "title": "配额",

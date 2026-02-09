@@ -66,7 +66,11 @@
     "completeLogin": "ブラウザでログインを完了してください",
     "openLink": "リンクを開く",
     "verify": "確認",
-    "manualCallback": "有効なコールバックが自動検出されない場合:"
+    "manualCallback": "有効なコールバックが自動検出されない場合:",
+    "authSuccess": "プロバイダーの接続に成功しました！"
+  },
+  "oauth": {
+    "pasteCallback": "コールバックURLをここに貼り付け..."
   },
   "quota": {
     "title": "クォータ",

@@ -66,7 +66,11 @@
     "completeLogin": "Hoàn tất đăng nhập trong trình duyệt của bạn",
     "openLink": "Mở liên kết",
     "verify": "Xác minh",
-    "manualCallback": "Nếu không tự động phát hiện callback hợp lệ:"
+    "manualCallback": "Nếu không tự động phát hiện callback hợp lệ:",
+    "authSuccess": "Kết nối nhà cung cấp thành công!"
+  },
+  "oauth": {
+    "pasteCallback": "Dán URL callback vào đây..."
   },
   "quota": {
     "title": "Hạn mức",
