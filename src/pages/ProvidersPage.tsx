@@ -3,7 +3,7 @@
  * Combined view for Connected Accounts and Adding New Providers
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores';
 import { authFilesApi } from '@/services/api/authFiles';
@@ -23,10 +23,11 @@ import {
   ExternalLink,
   ClipboardCopy,
   Eye,
-  EyeOff
+  EyeOff,
+  ChevronDown,
+  ChevronRight
 } from 'lucide-react';
-import { openExternalUrl, isTauri, runKiroAuth } from '@/services/tauri';
-import { useCliProxyStore } from '@/stores';
+import { openExternalUrl, isTauri } from '@/services/tauri';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,6 +39,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { maskEmail } from '@/utils/privacy';
+import { toast } from 'sonner';
 
 // --- Types ---
 
@@ -48,6 +50,11 @@ interface ProviderState {
   url?: string;
   state?: string;
   error?: string;
+  // Copilot device flow specific
+  userCode?: string;
+  deviceCode?: string;
+  expiresIn?: number;
+  interval?: number;
 }
 
 // --- Helpers ---
@@ -72,12 +79,24 @@ function formatName(name: string | undefined | null): string {
   return name.replace(/_gmail_com/g, '').replace(/\.json$/g, '');
 }
 
+// Helper to get provider icon path and whether it needs dark mode inversion
+function getProviderIconInfo(providerId: string): { path: string; needsInvert: boolean } {
+  const id = providerId.toLowerCase();
+  if (id.includes('antigravity')) return { path: '/antigravity/antigravity.png', needsInvert: false };
+  if (id.includes('claude') || id.includes('anthropic')) return { path: '/claude/claude.png', needsInvert: false };
+  if (id.includes('gemini')) return { path: '/gemini/gemini.png', needsInvert: false };
+  if (id.includes('codex') || id.includes('openai')) return { path: '/openai/openai.png', needsInvert: false };
+  if (id.includes('kiro')) return { path: '/kiro/kiro.png', needsInvert: false };
+  if (id.includes('copilot') || id.includes('github')) return { path: '/copilot/copilot.png', needsInvert: true };
+  return { path: '', needsInvert: false };
+}
+
 
 export function ProvidersPage() {
   const { t } = useTranslation();
   const { isAuthenticated } = useAuthStore();
 
-  // Confimration state
+  // Confirmation state
   const [fileToDelete, setFileToDelete] = useState<string | null>(null);
 
   // --- State: Connected Accounts ---
@@ -94,6 +113,48 @@ export function ProvidersPage() {
 
   // Privacy state
   const [isPrivacyMode, setIsPrivacyMode] = useState(true);
+
+  // Expanded state for provider groups
+  const [expandedProviders, setExpandedProviders] = useState<Record<string, boolean>>({
+    antigravity: true,
+    codex: true,
+    'gemini-cli': true,
+    kiro: true,
+    copilot: true
+  });
+
+  // Group files by provider type
+  const groupedFiles = useMemo(() => {
+    const groups: Record<string, { displayName: string; files: AuthFile[]; iconInfo: { path: string; needsInvert: boolean } }> = {
+      antigravity: { displayName: 'Antigravity', files: [], iconInfo: { path: '/antigravity/antigravity.png', needsInvert: false } },
+      codex: { displayName: 'Codex (OpenAI)', files: [], iconInfo: { path: '/openai/openai.png', needsInvert: false } },
+      'gemini-cli': { displayName: 'Gemini CLI', files: [], iconInfo: { path: '/gemini/gemini.png', needsInvert: false } },
+      kiro: { displayName: 'Kiro (CodeWhisperer)', files: [], iconInfo: { path: '/kiro/kiro.png', needsInvert: false } },
+      copilot: { displayName: 'GitHub Copilot', files: [], iconInfo: { path: '/copilot/copilot.png', needsInvert: true } }
+    };
+
+    files.forEach(file => {
+      const p = (file.provider || file.filename || '').toLowerCase();
+      if (p.includes('antigravity')) {
+        groups.antigravity.files.push(file);
+      } else if (p.includes('codex') || p.includes('openai')) {
+        groups.codex.files.push(file);
+      } else if (p.includes('gemini')) {
+        groups['gemini-cli'].files.push(file);
+      } else if (p.includes('kiro')) {
+        groups.kiro.files.push(file);
+      } else if (p.includes('copilot') || p.includes('github')) {
+        groups.copilot.files.push(file);
+      }
+    });
+
+    // Return only groups with files
+    return Object.entries(groups).filter(([, group]) => group.files.length > 0);
+  }, [files]);
+
+  const toggleProviderExpanded = (providerId: string) => {
+    setExpandedProviders(prev => ({ ...prev, [providerId]: !prev[providerId] }));
+  };
 
   // --- Cleanup ---
   useEffect(() => {
@@ -159,14 +220,17 @@ export function ProvidersPage() {
         const status = await oauthApi.getAuthStatus(state);
         if (status.status === 'ok' || status.completed) {
           updateProviderState(providerId, { status: 'success' });
+          toast.success(t('providers.authSuccess') || 'Provider connected successfully!');
           stopPolling(providerId);
           setSelectedProvider(null);
           loadFiles();
         } else if (status.status === 'error' || status.failed) {
+          const errorMsg = status.error || status.message || 'Authentication failed';
           updateProviderState(providerId, {
             status: 'error',
-            error: status.error || status.message || 'Authentication failed'
+            error: errorMsg
           });
+          toast.error(errorMsg);
           stopPolling(providerId);
         }
       } catch (err) {
@@ -182,27 +246,112 @@ export function ProvidersPage() {
     updateProviderState(providerId, { status: 'waiting', error: undefined });
     setSelectedProvider(providerId);
 
-    if (providerId === 'kiro') {
-      try {
-        const { exePath } = useCliProxyStore.getState();
-        if (!exePath) {
-          throw new Error('CLI Proxy path not configured. Please set it in Settings.');
-        }
-        await runKiroAuth(exePath, 'google');
-        updateProviderState(providerId, { status: 'success' });
-        setSelectedProvider(null);
-        await new Promise(resolve => setTimeout(resolve, 500));
-        await loadFiles();
-      } catch (err) {
-        updateProviderState(providerId, {
-          status: 'error',
-          error: (err as Error).message,
-        });
-      }
-      return;
-    }
-
     try {
+      // Kiro uses a dedicated web OAuth page
+      if (providerId === 'kiro') {
+        const { apiBase } = useAuthStore.getState();
+        const kiroOAuthUrl = `${apiBase}/v0/oauth/kiro`;
+
+        const initialFiles = files.filter(f =>
+          f.provider?.toLowerCase().includes('kiro') ||
+          f.filename?.toLowerCase().includes('kiro')
+        );
+        const initialKiroCount = initialFiles.length;
+
+        await openInBrowser(kiroOAuthUrl);
+        updateProviderState(providerId, { url: kiroOAuthUrl, status: 'polling' });
+
+        const pollTimer = window.setInterval(async () => {
+          try {
+            const response = await authFilesApi.list();
+            const currentFiles = response?.files ?? [];
+            const currentKiroFiles = currentFiles.filter(f =>
+              f.provider?.toLowerCase().includes('kiro') ||
+              f.filename?.toLowerCase().includes('kiro')
+            );
+
+            // Detect if a new kiro file was added
+            if (currentKiroFiles.length > initialKiroCount) {
+              updateProviderState(providerId, { status: 'success' });
+              toast.success(t('providers.authSuccess') || 'Provider connected successfully!');
+              stopPolling(providerId);
+              setSelectedProvider(null);
+              setFiles(currentFiles);
+            }
+          } catch {
+            // Ignore polling errors - expected during network issues
+          }
+        }, 2000);
+        pollingTimers.current[providerId] = pollTimer;
+        return;
+      }
+
+      // Copilot uses device code flow via backend
+      if (providerId === 'copilot') {
+        try {
+          const response = await oauthApi.startAuth('copilot');
+          const url = response.url || response.verification_uri;
+          const state = response.state;
+          const userCode = response.user_code;
+
+          if (!url) {
+            throw new Error('No verification URL returned from server');
+          }
+
+          updateProviderState(providerId, {
+            status: 'polling',
+            url,
+            state,
+            userCode
+          });
+
+          // Open verification URL
+          await openInBrowser(url);
+
+          // Poll for auth status if we have a state
+          if (state) {
+            startPolling(providerId, state);
+          } else {
+            // Fallback: poll for new auth files
+            const initialFiles = files.filter(f =>
+              f.provider?.toLowerCase().includes('github') ||
+              f.filename?.toLowerCase().includes('github')
+            );
+            const initialCount = initialFiles.length;
+
+            const pollTimer = window.setInterval(async () => {
+              try {
+                const listResponse = await authFilesApi.list();
+                const currentFiles = listResponse?.files ?? [];
+                const currentGithubFiles = currentFiles.filter(f =>
+                  f.provider?.toLowerCase().includes('github') ||
+                  f.filename?.toLowerCase().includes('github')
+                );
+
+                if (currentGithubFiles.length > initialCount) {
+                  updateProviderState(providerId, { status: 'success' });
+                  toast.success(t('providers.authSuccess') || 'Provider connected successfully!');
+                  stopPolling(providerId);
+                  setSelectedProvider(null);
+                  setFiles(currentFiles);
+                }
+              } catch {
+                // Ignore polling errors
+              }
+            }, 3000);
+            pollingTimers.current[providerId] = pollTimer;
+          }
+        } catch (err) {
+          const errorMsg = (err as Error).message;
+          updateProviderState(providerId, {
+            status: 'error',
+            error: errorMsg
+          });
+          toast.error(errorMsg);
+        }
+        return;
+      }
+
       const response = await oauthApi.startAuth(providerId, options);
       const url = response.url || response.auth_url;
       const state = response.state;
@@ -218,10 +367,12 @@ export function ProvidersPage() {
         startPolling(providerId, state);
       }
     } catch (err) {
+      const errorMsg = (err as Error).message;
       updateProviderState(providerId, {
         status: 'error',
-        error: (err as Error).message,
+        error: errorMsg,
       });
+      toast.error(errorMsg);
     }
   };
 
@@ -244,20 +395,24 @@ export function ProvidersPage() {
       stopPolling(selectedProvider);
       setCallbackUrl('');
       setSelectedProvider(null);
+      toast.success(t('providers.authSuccess') || 'Provider connected successfully!');
       loadFiles();
     } catch (err) {
+      const errorMsg = (err as Error).message;
       updateProviderState(selectedProvider, {
         status: 'error',
-        error: (err as Error).message,
+        error: errorMsg,
       });
+      toast.error(errorMsg);
     }
   };
 
-    const copyToClipboard = async (text: string) => {
+  const copyToClipboard = useCallback(async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
+      toast.success(t('common.copied') || 'Copied to clipboard!');
     } catch { /* ignore */ }
-  };
+  }, [t]);
 
   if (!isAuthenticated) {
      return (
@@ -329,87 +484,111 @@ export function ProvidersPage() {
                 </div>
             )}
 
-            <div className="space-y-1">
-                 {files.map((file) => {
-                        let iconPath = '';
-                        const p = (file.provider || '').toLowerCase();
-                        if (p.includes('antigravity')) iconPath = '/antigravity/antigravity.png';
-                        else if (p.includes('claude') || p.includes('anthropic')) iconPath = '/claude/claude.png';
-                        else if (p.includes('gemini')) iconPath = '/gemini/gemini.png';
-                        else if (p.includes('codex') || p.includes('openai')) iconPath = '/openai/openai.png';
-                        else if (p.includes('kiro')) iconPath = '/kiro/kiro.png';
+            <div className="space-y-2">
+                 {groupedFiles.map(([providerId, group]) => {
+                   const isExpanded = expandedProviders[providerId] ?? true;
 
-                        let rawName: string;
-                        if (p.includes('kiro')) {
-                          const filename = file.filename || file.id || '';
-                          const match = filename.match(/kiro-(\w+)/i);
+                   return (
+                     <div key={providerId} className="border rounded-lg overflow-hidden">
+                       {/* Provider Group Header */}
+                       <button
+                         onClick={() => toggleProviderExpanded(providerId)}
+                         className="w-full flex items-center gap-3 p-3 hover:bg-muted/50 transition-colors"
+                       >
+                         {isExpanded ? (
+                           <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                         ) : (
+                           <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                         )}
+                         <img
+                           src={group.iconInfo.path}
+                           alt={group.displayName}
+                           className={`h-5 w-5 object-contain ${group.iconInfo.needsInvert ? 'invert-on-dark' : ''}`}
+                         />
+                         <span className="font-medium text-sm">{group.displayName}</span>
+                         <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
+                           {group.files.length}
+                         </Badge>
+                       </button>
 
-                          if (match && match[1]) {
-                            const method = match[1].charAt(0).toUpperCase() + match[1].slice(1).toLowerCase();
-                            rawName = `Kiro (${method})`;
-                          } else {
-                            const metaEmail = (file.metadata?.email as string) || (file['email'] as string);
-                            const authMethod = (file.metadata?.provider as string) || (file.metadata?.auth_method as string);
+                       {/* Expanded Files List */}
+                       {isExpanded && (
+                         <div className="border-t bg-muted/20">
+                           {group.files.map((file) => {
+                             const p = (file.provider || '').toLowerCase();
 
-                            if (metaEmail && metaEmail.trim() !== '') {
-                              rawName = formatName(metaEmail);
-                            } else if (authMethod) {
-                              rawName = `Kiro (${authMethod})`;
-                            } else {
-                              rawName = 'Kiro';
-                            }
-                          }
-                        } else {
-                          rawName = formatName((file.metadata?.email as string) || (file.account as string) || file.filename);
-                        }
-                        const email = isPrivacyMode ? maskEmail(rawName) : rawName;
+                             let rawName: string;
+                             if (p.includes('kiro')) {
+                               const topEmail = (file.email as string) || (file.account as string);
+                               if (topEmail && topEmail.trim() !== '') {
+                                 rawName = formatName(topEmail);
+                               } else {
+                                 const filename = file.filename || file.id || '';
+                                 const match = filename.match(/kiro-(\w+)/i);
+                                 if (match && match[1]) {
+                                   const method = match[1].charAt(0).toUpperCase() + match[1].slice(1).toLowerCase();
+                                   rawName = `Kiro (${method})`;
+                                 } else {
+                                   const metaEmail = (file.metadata?.email as string);
+                                   const authMethod = (file.metadata?.provider as string) || (file.metadata?.auth_method as string);
+                                   if (metaEmail && metaEmail.trim() !== '') {
+                                     rawName = formatName(metaEmail);
+                                   } else if (authMethod) {
+                                     rawName = `Kiro (${authMethod})`;
+                                   } else {
+                                     rawName = 'Kiro';
+                                   }
+                                 }
+                               }
+                             } else {
+                               rawName = formatName((file.metadata?.email as string) || (file.account as string) || file.filename);
+                             }
+                             const displayName = isPrivacyMode ? maskEmail(rawName) : rawName;
 
-                        return (
-                        <div key={file.id} className="group flex items-center justify-between p-3 hover:bg-muted/50 rounded-lg transition-colors">
-                            <div className="flex items-center gap-4">
-                                {/* Provider Icon */}
-                                <div className="flex h-8 w-8 items-center justify-center rounded-sm overflow-hidden bg-transparent">
-                                       <img
-                                        src={iconPath}
-                                        alt={file.provider}
-                                        className="h-full w-full object-contain"
-                                        onError={(e) => {
-                                            (e.target as HTMLImageElement).style.display = 'none';
-                                            ((e.target as HTMLImageElement).nextSibling as HTMLElement).style.display = 'block';
-                                        }}
-                                       />
-                                       <span className="hidden font-bold">{file.provider.charAt(0).toUpperCase()}</span>
-                                </div>
+                             return (
+                               <div
+                                 key={file.id}
+                                 className="group flex items-center justify-between pl-10 pr-3 py-2 hover:bg-muted/50 transition-colors"
+                               >
+                                 <div className="flex items-center gap-3">
+                                   <img
+                                     src={group.iconInfo.path}
+                                     alt={file.provider}
+                                     className={`h-5 w-5 object-contain ${group.iconInfo.needsInvert ? 'invert-on-dark' : ''}`}
+                                   />
+                                   <div>
+                                     <div className="font-medium text-sm text-foreground">{displayName}</div>
+                                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                       <span>{file.provider}</span>
+                                       <span className="text-[10px]">•</span>
+                                       <span>{t('providers.active')}</span>
+                                     </div>
+                                   </div>
+                                 </div>
 
-                                <div>
-                                    <div className="font-medium text-sm text-foreground">{email}</div>
-                                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                         <span>{file.provider}</span>
-                                         <span className="text-[10px]">•</span>
-                                         <span className="text-muted-foreground">{t('providers.active')}</span>
-                                    </div>
-                                </div>
-                            </div>
+                                 <Button
+                                   size="icon"
+                                   variant="ghost"
+                                   className="h-8 w-8 text-destructive hover:bg-destructive/10 opacity-80 group-hover:opacity-100"
+                                   onClick={() => setFileToDelete(file.id)}
+                                   title={t('common.delete')}
+                                 >
+                                   <Trash2 className="h-4 w-4" />
+                                 </Button>
+                               </div>
+                             );
+                           })}
+                         </div>
+                       )}
+                     </div>
+                   );
+                 })}
 
-                            <div className="flex items-center gap-2 opacity-80 group-hover:opacity-100">
-                                <Button
-                                  size="icon"
-                                  variant="ghost"
-                                  className="h-8 w-8 text-destructive hover:bg-destructive/10"
-                                  onClick={() => setFileToDelete(file.id)}
-                                  title={t('common.delete')}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                            </div>
-                        </div>
-                     )})}
-
-                     {loadingFiles && (
-                        <div className="flex justify-center py-4">
-                            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                        </div>
-                     )}
+                 {loadingFiles && (
+                   <div className="flex justify-center py-4">
+                     <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                   </div>
+                 )}
             </div>
         </section>
 
@@ -426,13 +605,7 @@ export function ProvidersPage() {
                     const isWaiting = state.status === 'waiting' || state.status === 'polling';
                     const isSuccess = state.status === 'success';
 
-                    let iconPath = '';
-                    const pid = provider.id;
-                    if (pid === 'antigravity') iconPath = '/antigravity/antigravity.png';
-                    else if (pid === 'anthropic' || (pid as string) === 'claude') iconPath = '/claude/claude.png';
-                    else if (pid === 'gemini-cli') iconPath = '/gemini/gemini.png';
-                    else if (pid === 'codex') iconPath = '/openai/openai.png';
-                    else if (pid === 'kiro') iconPath = '/kiro/kiro.png';
+                    const iconInfo = getProviderIconInfo(provider.id);
 
                     const isSelected = selectedProvider === provider.id;
 
@@ -482,6 +655,28 @@ export function ProvidersPage() {
                                     {/* Normal Auth Flow (Polling/Waiting) - Only if NOT Error and NOT Idle */}
                                     {state.status !== 'idle' && state.status !== 'error' && (
                                         <>
+                                            {/* Copilot Device Code Display */}
+                                            {provider.id === 'copilot' && state.userCode && (
+                                              <div className="space-y-3">
+                                                <p className="text-sm text-muted-foreground">
+                                                  {t('providers.copilotInstructions', 'Enter the code below at GitHub:')}
+                                                </p>
+                                                <div className="flex items-center justify-center gap-3">
+                                                  <code className="text-3xl font-mono font-bold tracking-widest bg-muted px-4 py-2 rounded-lg">
+                                                    {state.userCode}
+                                                  </code>
+                                                  <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => copyToClipboard(state.userCode!)}
+                                                    title={t('common.copy')}
+                                                  >
+                                                    <ClipboardCopy className="h-4 w-4" />
+                                                  </Button>
+                                                </div>
+                                              </div>
+                                            )}
+
                                             <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                                 <Loader2 className="h-4 w-4 animate-spin" />
                                                 <span>{t('providers.completeLogin')}</span>
@@ -528,15 +723,24 @@ export function ProvidersPage() {
                     return (
                         <div
                             key={provider.id}
-                            className="flex items-center justify-between rounded-lg border bg-card p-3 transition-colors hover:bg-accent/50"
+                            className="flex items-center justify-between rounded-lg border bg-card p-3 transition-colors hover:bg-accent/50 cursor-pointer"
+                            onClick={() => {
+                                if (provider.requiresProjectId) {
+                                     setSelectedProvider(provider.id);
+                                     setProjectInput(''); // Reset input
+                                     updateProviderState(provider.id, { status: 'idle' });
+                                } else {
+                                     startAuth(provider.id);
+                                }
+                            }}
                         >
                              <div className="flex items-center gap-3">
                                  {/* Icon */}
                                  <div className="flex h-8 w-8 items-center justify-center rounded-md bg-secondary/50 p-1 overflow-hidden">
                                        <img
-                                        src={iconPath}
+                                        src={iconInfo.path}
                                         alt={provider.name}
-                                        className="h-full w-full object-contain"
+                                        className={`h-full w-full object-contain ${iconInfo.needsInvert ? 'invert-on-dark' : ''}`}
                                         onError={(e) => {
                                             (e.target as HTMLImageElement).style.display = 'none';
                                         }}
@@ -551,24 +755,11 @@ export function ProvidersPage() {
 
                              <div className="flex items-center gap-2">
                                 {isSuccess && <Badge className="bg-green-500">{t('auth.connected')}</Badge>}
-                                <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    className="h-8 w-8 rounded-full border p-0 hover:bg-accent hover:text-accent-foreground"
-                                    onClick={() => {
-                                        if (provider.requiresProjectId) {
-                                             setSelectedProvider(provider.id);
-                                             setProjectInput(''); // Reset input
-                                             // Don't start auth yet, wait for input
-                                             updateProviderState(provider.id, { status: 'idle' });
-                                        } else {
-                                             startAuth(provider.id);
-                                        }
-                                    }}
-                                    title={t('providers.connect')}
+                                <div
+                                    className="h-8 w-8 rounded-full border p-0 flex items-center justify-center hover:bg-accent hover:text-accent-foreground"
                                 >
                                     <Plus className="h-4 w-4" />
-                                </Button>
+                                </div>
                              </div>
                         </div>
                     );

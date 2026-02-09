@@ -9,6 +9,9 @@ const WEBUI_SUPPORTED: OAuthProvider[] = ['codex', 'anthropic', 'antigravity', '
 const CALLBACK_PROVIDER_MAP: Partial<Record<OAuthProvider, string>> = {
   'gemini-cli': 'gemini'
 };
+const AUTH_URL_PROVIDER_MAP: Partial<Record<OAuthProvider, string>> = {
+  'copilot': 'github'
+};
 
 export const oauthApi = {
   startAuth: (provider: OAuthProvider, options?: { projectId?: string }) => {
@@ -19,7 +22,8 @@ export const oauthApi = {
     if (provider === 'gemini-cli' && options?.projectId) {
       params.project_id = options.projectId;
     }
-    return apiClient.get<OAuthStartResponse>(`/${provider}-auth-url`, {
+    const endpointProvider = AUTH_URL_PROVIDER_MAP[provider] ?? provider;
+    return apiClient.get<OAuthStartResponse>(`/${endpointProvider}-auth-url`, {
       params: Object.keys(params).length ? params : undefined
     });
   },

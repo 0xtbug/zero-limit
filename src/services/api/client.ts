@@ -195,6 +195,14 @@ class ApiClient {
   }
 
   /**
+   * PUT request
+   */
+  async put<T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
+    const response = await this.instance.put<T>(url, data, config);
+    return response.data;
+  }
+
+  /**
    * Get raw response (for downloads, etc.)
    */
   async getRaw(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse> {

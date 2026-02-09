@@ -50,7 +50,7 @@ interface ProviderSection {
 }
 
 // Identify provider from filename - with null safety
-function getProviderType(file: AuthFile): 'antigravity' | 'codex' | 'gemini-cli' | 'kiro' | 'unknown' {
+function getProviderType(file: AuthFile): 'antigravity' | 'codex' | 'gemini-cli' | 'kiro' | 'copilot' | 'unknown' {
   // Handle missing filename
   const filename = (file?.filename || file?.id || '').toLowerCase();
 
@@ -58,6 +58,7 @@ function getProviderType(file: AuthFile): 'antigravity' | 'codex' | 'gemini-cli'
   if (filename.startsWith('codex-') || filename.includes('codex')) return 'codex';
   if (filename.startsWith('gemini-cli-') || filename.includes('gemini')) return 'gemini-cli';
   if (filename.startsWith('kiro-') || filename.includes('kiro')) return 'kiro';
+  if (filename.startsWith('github-copilot-') || filename.includes('copilot')) return 'copilot';
 
   // Fallback to provider field
   const provider = (file?.provider || '').toLowerCase();
@@ -65,6 +66,7 @@ function getProviderType(file: AuthFile): 'antigravity' | 'codex' | 'gemini-cli'
   if (provider.includes('codex')) return 'codex';
   if (provider.includes('gemini')) return 'gemini-cli';
   if (provider.includes('kiro')) return 'kiro';
+  if (provider.includes('copilot') || provider.includes('github')) return 'copilot';
 
   return 'unknown';
 }
@@ -101,6 +103,7 @@ export function QuotaPage() {
         codex: [],
         'gemini-cli': [],
         'kiro': [],
+        'copilot': [],
       };
 
       files.forEach((file) => {
@@ -123,6 +126,7 @@ export function QuotaPage() {
         { provider: 'codex', displayName: 'Codex (OpenAI)', files: grouped.codex },
         { provider: 'gemini-cli', displayName: 'Gemini CLI', files: grouped['gemini-cli'] },
         { provider: 'kiro', displayName: 'Kiro (CodeWhisperer)', files: grouped['kiro'] },
+        { provider: 'copilot', displayName: 'GitHub Copilot', files: grouped['copilot'] },
       ]);
 
       // Auto-fetch quota for all files
@@ -256,6 +260,19 @@ export function QuotaPage() {
             error: result.error
           } : f)
         } : s));
+      } else if (targetProvider === 'copilot') {
+        const result = await quotaApi.fetchCopilot(authIndex);
+
+        setSections((prev) => prev.map(s => s.provider === 'copilot' ? {
+          ...s,
+          files: s.files.map(f => f.fileId === fileId ? {
+            ...f,
+            loading: false,
+            plan: result.plan,
+            models: result.models,
+            error: result.error
+          } : f)
+        } : s));
       }
     } catch (err) {
       const msg = (err as Error).message;
@@ -272,23 +289,28 @@ export function QuotaPage() {
 
   // Compute filter items for header
   const filterItems: ProviderFilterItem[] = useMemo(() => {
-    // Map internal keys to icon paths (assume standard location public/provider/provider.png)
-    const getIcon = (key: string) => {
-        if (key === 'antigravity') return '/antigravity/antigravity.png';
-        if (key === 'codex') return '/openai/openai.png'; // Assuming Codex uses OpenAI icon
-        if (key === 'gemini-cli') return '/gemini/gemini.png';
-        if (key === 'kiro') return '/kiro/kiro.png';
-        return undefined;
+    // Map internal keys to icon paths and dark mode inversion needs
+    const getIconInfo = (key: string): { path?: string; needsInvert: boolean } => {
+        if (key === 'antigravity') return { path: '/antigravity/antigravity.png', needsInvert: false };
+        if (key === 'codex') return { path: '/openai/openai.png', needsInvert: false };
+        if (key === 'gemini-cli') return { path: '/gemini/gemini.png', needsInvert: false };
+        if (key === 'kiro') return { path: '/kiro/kiro.png', needsInvert: false };
+        if (key === 'copilot') return { path: '/copilot/copilot.png', needsInvert: true };
+        return { needsInvert: false };
     };
 
     return sections
         .filter(s => s.files.length > 0)
-        .map(s => ({
-            id: s.provider,
-            label: s.displayName,
-            count: s.files.length,
-            icon: getIcon(s.provider)
-        }));
+        .map(s => {
+            const iconInfo = getIconInfo(s.provider);
+            return {
+                id: s.provider,
+                label: s.displayName,
+                count: s.files.length,
+                icon: iconInfo.path,
+                iconNeedsInvert: iconInfo.needsInvert
+            };
+        });
   }, [sections]);
 
   // Ensure active tab is valid (defaults to first available if current empty/invalid)
@@ -416,6 +438,7 @@ export function QuotaPage() {
                 loading={file.loading}
                 error={file.error}
                 items={items}
+                plan={file.plan}
                 onRefresh={() => fetchQuotaForFile(file.fileId, file.originalFile)}
                 isPrivacyMode={isPrivacyMode}
               />

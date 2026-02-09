@@ -7,6 +7,7 @@ export interface ProviderFilterItem {
   label: string;
   count: number;
   icon?: string;
+  iconNeedsInvert?: boolean;
 }
 
 interface ProviderFilterProps {
@@ -33,7 +34,11 @@ export function ProviderFilter({ items, activeId, onSelect }: ProviderFilterProp
             )}
           >
             {item.icon && (
-               <img src={item.icon} alt={item.label} className="h-4 w-4 object-contain" />
+               <img
+                 src={item.icon}
+                 alt={item.label}
+                 className={cn("h-4 w-4 object-contain", item.iconNeedsInvert && "invert-on-dark")}
+               />
             )}
 
             <span className="text-sm font-medium">{item.label}</span>

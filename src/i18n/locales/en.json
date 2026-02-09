@@ -66,7 +66,11 @@
     "completeLogin": "Complete the login in your browser",
     "openLink": "Open Link",
     "verify": "Verify",
-    "manualCallback": "If valid callback is not detected automatically:"
+    "manualCallback": "If valid callback is not detected automatically:",
+    "authSuccess": "Provider connected successfully!"
+  },
+  "oauth": {
+    "pasteCallback": "Paste callback URL here..."
   },
   "quota": {
     "title": "Quota",
@@ -134,6 +138,10 @@
   },
   "usageStats": {
     "title": "Usage Statistics",
+    "settingsDesc": "Configure usage statistics collection and display",
+    "enabled": "Enable Usage Statistics",
+    "enabledDesc": "Collect and display usage statistics in the Dashboard",
+    "disabledMessage": "Usage statistics are disabled. Enable them in Settings to view your usage data.",
     "totalRequests": "Total Requests",
     "successfulRequests": "Success Requests",
     "failedRequests": "Failed Requests",

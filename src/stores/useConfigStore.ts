@@ -12,10 +12,12 @@ interface ConfigState {
   loading: boolean;
   error: string | null;
   lastFetch: number;
+  updatingUsageStats: boolean;
 
   // Actions
   fetchConfig: (forceRefresh?: boolean) => Promise<Config>;
   clearCache: () => void;
+  updateUsageStatistics: (enabled: boolean) => Promise<void>;
 }
 
 let configRequestToken = 0;
@@ -26,6 +28,7 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
   loading: false,
   error: null,
   lastFetch: 0,
+  updatingUsageStats: false,
 
   fetchConfig: async (forceRefresh = false) => {
     const { lastFetch, config } = get();
@@ -79,5 +82,20 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
     configRequestToken += 1;
     inFlightRequest = null;
     set({ config: null, loading: false, error: null, lastFetch: 0 });
+  },
+
+  updateUsageStatistics: async (enabled: boolean) => {
+    set({ updatingUsageStats: true, error: null });
+    try {
+      await configApi.updateUsageStatistics(enabled);
+      // Refresh config to get updated value
+      const { fetchConfig } = get();
+      await fetchConfig(true);
+    } catch (error: unknown) {
+      set({ error: (error as Error).message || 'Failed to update usage statistics' });
+      throw error;
+    } finally {
+      set({ updatingUsageStats: false });
+    }
   },
 }));

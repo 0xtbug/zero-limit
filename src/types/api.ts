@@ -9,12 +9,15 @@ export interface Config {
 }
 
 // OAuth types
-export type OAuthProvider = 'codex' | 'anthropic' | 'antigravity' | 'gemini-cli' | 'kiro';
+export type OAuthProvider = 'codex' | 'anthropic' | 'antigravity' | 'gemini-cli' | 'kiro' | 'copilot';
 
 export interface OAuthStartResponse {
   url?: string;
   auth_url?: string;
   state?: string;
+  // Device flow fields (for GitHub Copilot)
+  user_code?: string;
+  verification_uri?: string;
 }
 
 export interface OAuthCallbackResponse {

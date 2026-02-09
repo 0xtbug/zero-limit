@@ -66,7 +66,11 @@
     "completeLogin": "Hoàn tất đăng nhập trong trình duyệt của bạn",
     "openLink": "Mở liên kết",
     "verify": "Xác minh",
-    "manualCallback": "Nếu không tự động phát hiện callback hợp lệ:"
+    "manualCallback": "Nếu không tự động phát hiện callback hợp lệ:",
+    "authSuccess": "Kết nối nhà cung cấp thành công!"
+  },
+  "oauth": {
+    "pasteCallback": "Dán URL callback vào đây..."
   },
   "quota": {
     "title": "Hạn mức",
@@ -133,6 +137,10 @@
   },
   "usageStats": {
     "title": "Thống kê sử dụng",
+    "settingsDesc": "Cấu hình thu thập và hiển thị thống kê sử dụng",
+    "enabled": "Bật thống kê sử dụng",
+    "enabledDesc": "Thu thập và hiển thị thống kê sử dụng trên Bảng điều khiển",
+    "disabledMessage": "Thống kê sử dụng đã bị tắt. Bật trong Cài đặt để xem dữ liệu sử dụng của bạn.",
     "totalRequests": "Tổng số yêu cầu",
     "successfulRequests": "Yêu cầu thành công",
     "failedRequests": "Yêu cầu thất bại",

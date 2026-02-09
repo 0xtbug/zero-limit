@@ -66,7 +66,11 @@
     "completeLogin": "在浏览器中完成登录",
     "openLink": "打开链接",
     "verify": "验证",
-    "manualCallback": "如果未自动检测到回调："
+    "manualCallback": "如果未自动检测到回调：",
+    "authSuccess": "提供商连接成功！"
+  },
+  "oauth": {
+    "pasteCallback": "在此粘贴回调 URL..."
   },
   "quota": {
     "title": "配额",
@@ -133,6 +137,10 @@
   },
   "usageStats": {
     "title": "使用统计",
+    "settingsDesc": "配置使用统计的收集和显示",
+    "enabled": "启用使用统计",
+    "enabledDesc": "在仪表盘中收集和显示使用统计",
+    "disabledMessage": "使用统计已禁用。请在设置中启用以查看您的使用数据。",
     "totalRequests": "总请求数",
     "successfulRequests": "成功请求",
     "failedRequests": "失败请求",

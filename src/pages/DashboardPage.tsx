@@ -485,7 +485,15 @@ export function DashboardPage() {
       <div className="space-y-6">
           <h2 className="text-2xl font-bold tracking-tight">{t('usageStats.title')}</h2>
 
-          {!usage && !usageLoading ? (
+          {/* Check if usage statistics is disabled in config */}
+          {Boolean(useConfigStore.getState().config?.['usage-statistics-enabled']) === false ? (
+                 <Card>
+                   <CardContent className="flex flex-col items-center justify-center py-8 gap-4">
+                     <BarChart3 className="h-12 w-12 text-muted-foreground/50" />
+                     <span className="text-muted-foreground text-center">{t('usageStats.disabledMessage')}</span>
+                   </CardContent>
+                 </Card>
+               ) : !usage && !usageLoading ? (
                  <Card>
                    <CardContent className="flex items-center justify-center py-8">
                      <span className="text-muted-foreground">{t('usageStats.noData')}</span>

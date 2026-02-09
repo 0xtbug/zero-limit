@@ -66,7 +66,11 @@
     "completeLogin": "브라우저에서 로그인을 완료하세요",
     "openLink": "링크 열기",
     "verify": "확인",
-    "manualCallback": "유효한 콜백이 자동으로 감지되지 않는 경우:"
+    "manualCallback": "유효한 콜백이 자동으로 감지되지 않는 경우:",
+    "authSuccess": "제공자가 성공적으로 연결되었습니다!"
+  },
+  "oauth": {
+    "pasteCallback": "콜백 URL을 여기에 붙여넣기..."
   },
   "quota": {
     "title": "할당량",
@@ -133,6 +137,10 @@
   },
   "usageStats": {
     "title": "사용량 통계",
+    "settingsDesc": "사용량 통계 수집 및 표시 설정",
+    "enabled": "사용량 통계 활성화",
+    "enabledDesc": "대시보드에서 사용량 통계 수집 및 표시",
+    "disabledMessage": "사용량 통계가 비활성화되어 있습니다. 설정에서 활성화하여 사용 데이터를 확인하세요.",
     "totalRequests": "총 요청 수",
     "successfulRequests": "성공 요청",
     "failedRequests": "실패 요청",

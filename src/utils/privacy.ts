@@ -4,24 +4,33 @@
 
 /**
  * Masks an email address while keeping the domain visible.
- * Example: aaaaaa@gmail.com -> ******@gmail.com
- */
-/**
- * Masks an email address while keeping the domain visible.
- * Handles both standalone emails and emails strings with suffixes like " (project-id)".
+ * For non-email strings (usernames), masks all but the first character.
  * Example: aaaaaa@gmail.com -> ******@gmail.com
  * Example: aaaaaa@gmail.com (my-project) -> ******@gmail.com (******)
+ * Example: 0xtbug -> 0*****
+ * Example: Kiro -> K***
  */
 export function maskEmail(input: string): string {
   if (!input) return '';
 
-  let result = input.replace(/([a-zA-Z0-9._-]+)(@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/gi, (_, __, domainPart) => {
-    return '******' + domainPart;
-  });
+  // Check if input contains an email pattern
+  const hasEmail = /[a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+/i.test(input);
 
-  result = result.replace(/\([a-zA-Z0-9-]+\)/g, '(******)');
+  if (hasEmail) {
+    // Mask email addresses
+    let result = input.replace(/([a-zA-Z0-9._-]+)(@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/gi, (_, __, domainPart) => {
+      return '******' + domainPart;
+    });
 
-  return result;
+    // Mask parenthesized content (like project IDs)
+    result = result.replace(/\([a-zA-Z0-9-]+\)/g, '(******)');
+
+    return result;
+  }
+
+  // For non-email strings (usernames), keep first char and mask the rest
+  if (input.length <= 1) return input;
+  return input.charAt(0) + '*'.repeat(Math.min(input.length - 1, 5));
 }
 
 /**

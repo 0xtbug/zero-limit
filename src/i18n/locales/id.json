@@ -66,7 +66,11 @@
     "completeLogin": "Selesaikan login di browser Anda",
     "openLink": "Buka Tautan",
     "verify": "Verifikasi",
-    "manualCallback": "Jika callback valid tidak terdeteksi otomatis:"
+    "manualCallback": "Jika callback valid tidak terdeteksi otomatis:",
+    "authSuccess": "Penyedia berhasil terhubung!"
+  },
+  "oauth": {
+    "pasteCallback": "Tempelkan URL callback di sini..."
   },
   "quota": {
     "title": "Kuota",
@@ -134,6 +138,10 @@
   },
   "usageStats": {
     "title": "Statistik Penggunaan",
+    "settingsDesc": "Konfigurasi pengumpulan dan tampilan statistik penggunaan",
+    "enabled": "Aktifkan Statistik Penggunaan",
+    "enabledDesc": "Kumpulkan dan tampilkan statistik penggunaan di Dasbor",
+    "disabledMessage": "Statistik penggunaan dinonaktifkan. Aktifkan di Pengaturan untuk melihat data penggunaan Anda.",
     "totalRequests": "Total Permintaan",
     "successfulRequests": "Permintaan Berhasil",
     "failedRequests": "Permintaan Gagal",
