@@ -76,16 +76,16 @@ function formatName(name: string | undefined | null): string {
   return name.replace(/_gmail_com/g, '').replace(/\.json$/g, '');
 }
 
-// Helper to get provider icon path
-function getProviderIconPath(providerId: string): string {
+// Helper to get provider icon path and whether it needs dark mode inversion
+function getProviderIconInfo(providerId: string): { path: string; needsInvert: boolean } {
   const id = providerId.toLowerCase();
-  if (id.includes('antigravity')) return '/antigravity/antigravity.png';
-  if (id.includes('claude') || id.includes('anthropic')) return '/claude/claude.png';
-  if (id.includes('gemini')) return '/gemini/gemini.png';
-  if (id.includes('codex') || id.includes('openai')) return '/openai/openai.png';
-  if (id.includes('kiro')) return '/kiro/kiro.png';
-  if (id.includes('copilot') || id.includes('github')) return '/copilot/copilot.png';
-  return '';
+  if (id.includes('antigravity')) return { path: '/antigravity/antigravity.png', needsInvert: false };
+  if (id.includes('claude') || id.includes('anthropic')) return { path: '/claude/claude.png', needsInvert: false };
+  if (id.includes('gemini')) return { path: '/gemini/gemini.png', needsInvert: false };
+  if (id.includes('codex') || id.includes('openai')) return { path: '/openai/openai.png', needsInvert: false };
+  if (id.includes('kiro')) return { path: '/kiro/kiro.png', needsInvert: false };
+  if (id.includes('copilot') || id.includes('github')) return { path: '/copilot/copilot.png', needsInvert: true };
+  return { path: '', needsInvert: false };
 }
 
 
@@ -428,7 +428,7 @@ export function ProvidersPage() {
 
             <div className="space-y-1">
                  {files.map((file) => {
-                        const iconPath = getProviderIconPath(file.provider || '');
+                        const iconInfo = getProviderIconInfo(file.provider || '');
                         const p = (file.provider || '').toLowerCase();
 
                         let rawName: string;
@@ -469,9 +469,9 @@ export function ProvidersPage() {
                                 {/* Provider Icon */}
                                 <div className="flex h-8 w-8 items-center justify-center rounded-sm overflow-hidden bg-transparent">
                                        <img
-                                        src={iconPath}
+                                        src={iconInfo.path}
                                         alt={file.provider}
-                                        className="h-full w-full object-contain"
+                                        className={`h-full w-full object-contain ${iconInfo.needsInvert ? 'invert-on-dark' : ''}`}
                                         onError={(e) => {
                                             (e.target as HTMLImageElement).style.display = 'none';
                                             ((e.target as HTMLImageElement).nextSibling as HTMLElement).style.display = 'block';
@@ -525,7 +525,7 @@ export function ProvidersPage() {
                     const isWaiting = state.status === 'waiting' || state.status === 'polling';
                     const isSuccess = state.status === 'success';
 
-                    const iconPath = getProviderIconPath(provider.id);
+                    const iconInfo = getProviderIconInfo(provider.id);
 
                     const isSelected = selectedProvider === provider.id;
 
@@ -649,9 +649,9 @@ export function ProvidersPage() {
                                  {/* Icon */}
                                  <div className="flex h-8 w-8 items-center justify-center rounded-md bg-secondary/50 p-1 overflow-hidden">
                                        <img
-                                        src={iconPath}
+                                        src={iconInfo.path}
                                         alt={provider.name}
-                                        className="h-full w-full object-contain"
+                                        className={`h-full w-full object-contain ${iconInfo.needsInvert ? 'invert-on-dark' : ''}`}
                                         onError={(e) => {
                                             (e.target as HTMLImageElement).style.display = 'none';
                                         }}

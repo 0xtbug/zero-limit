@@ -289,24 +289,28 @@ export function QuotaPage() {
 
   // Compute filter items for header
   const filterItems: ProviderFilterItem[] = useMemo(() => {
-    // Map internal keys to icon paths (assume standard location public/provider/provider.png)
-    const getIcon = (key: string) => {
-        if (key === 'antigravity') return '/antigravity/antigravity.png';
-        if (key === 'codex') return '/openai/openai.png'; // Assuming Codex uses OpenAI icon
-        if (key === 'gemini-cli') return '/gemini/gemini.png';
-        if (key === 'kiro') return '/kiro/kiro.png';
-        if (key === 'copilot') return '/copilot/copilot.png';
-        return undefined;
+    // Map internal keys to icon paths and dark mode inversion needs
+    const getIconInfo = (key: string): { path?: string; needsInvert: boolean } => {
+        if (key === 'antigravity') return { path: '/antigravity/antigravity.png', needsInvert: false };
+        if (key === 'codex') return { path: '/openai/openai.png', needsInvert: false };
+        if (key === 'gemini-cli') return { path: '/gemini/gemini.png', needsInvert: false };
+        if (key === 'kiro') return { path: '/kiro/kiro.png', needsInvert: false };
+        if (key === 'copilot') return { path: '/copilot/copilot.png', needsInvert: true };
+        return { needsInvert: false };
     };
 
     return sections
         .filter(s => s.files.length > 0)
-        .map(s => ({
-            id: s.provider,
-            label: s.displayName,
-            count: s.files.length,
-            icon: getIcon(s.provider)
-        }));
+        .map(s => {
+            const iconInfo = getIconInfo(s.provider);
+            return {
+                id: s.provider,
+                label: s.displayName,
+                count: s.files.length,
+                icon: iconInfo.path,
+                iconNeedsInvert: iconInfo.needsInvert
+            };
+        });
   }, [sections]);
 
   // Ensure active tab is valid (defaults to first available if current empty/invalid)
