@@ -14,7 +14,7 @@ const ANTIGRAVITY_QUOTA_URLS = [
 
 const GEMINI_CLI_QUOTA_URL = 'https://cloudcode-pa.googleapis.com/v1internal:retrieveUserQuota';
 const CODEX_USAGE_URL = 'https://chatgpt.com/backend-api/wham/usage';
-const KIRO_USAGE_URL = 'https://codewhisperer.us-east-1.amazonaws.com/getUsageLimits?isEmailRequired=true&origin=AI_EDITOR';
+const KIRO_USAGE_URL = 'https://codewhisperer.us-east-1.amazonaws.com/getUsageLimits?isEmailRequired=true&origin=AI_EDITOR&resourceType=AGENTIC_REQUEST';
 
 // Headers
 const ANTIGRAVITY_HEADERS = {
@@ -494,6 +494,18 @@ export const quotaApi = {
 
       if (result.statusCode >= 200 && result.statusCode < 300) {
         return parseKiroQuota(result.body);
+      }
+
+      // Handle 403 (suspended/forbidden) - show as full quota
+      if (result.statusCode === 403) {
+        const body = result.body as Record<string, unknown> | null;
+        const rawReason = (body?.reason as string) || '';
+        // Format: TEMPORARILY_SUSPENDED -> Suspended
+        const reason = rawReason.replace(/_/g, ' ').toLowerCase().replace(/^\w/, c => c.toUpperCase()) || 'Suspended';
+        return {
+          models: [{ name: 'Kiro', percentage: 100, resetTime: reason }],
+          plan: 'Suspended'
+        };
       }
 
       return { models: [], error: formatQuotaError(result) };

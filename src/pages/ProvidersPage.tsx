@@ -25,8 +25,7 @@ import {
   Eye,
   EyeOff
 } from 'lucide-react';
-import { openExternalUrl, isTauri, runKiroAuth } from '@/services/tauri';
-import { useCliProxyStore } from '@/stores';
+import { openExternalUrl, isTauri } from '@/services/tauri';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -72,12 +71,23 @@ function formatName(name: string | undefined | null): string {
   return name.replace(/_gmail_com/g, '').replace(/\.json$/g, '');
 }
 
+// Helper to get provider icon path
+function getProviderIconPath(providerId: string): string {
+  const id = providerId.toLowerCase();
+  if (id.includes('antigravity')) return '/antigravity/antigravity.png';
+  if (id.includes('claude') || id.includes('anthropic')) return '/claude/claude.png';
+  if (id.includes('gemini')) return '/gemini/gemini.png';
+  if (id.includes('codex') || id.includes('openai')) return '/openai/openai.png';
+  if (id.includes('kiro')) return '/kiro/kiro.png';
+  return '';
+}
+
 
 export function ProvidersPage() {
   const { t } = useTranslation();
   const { isAuthenticated } = useAuthStore();
 
-  // Confimration state
+  // Confirmation state
   const [fileToDelete, setFileToDelete] = useState<string | null>(null);
 
   // --- State: Connected Accounts ---
@@ -182,27 +192,45 @@ export function ProvidersPage() {
     updateProviderState(providerId, { status: 'waiting', error: undefined });
     setSelectedProvider(providerId);
 
-    if (providerId === 'kiro') {
-      try {
-        const { exePath } = useCliProxyStore.getState();
-        if (!exePath) {
-          throw new Error('CLI Proxy path not configured. Please set it in Settings.');
-        }
-        await runKiroAuth(exePath, 'google');
-        updateProviderState(providerId, { status: 'success' });
-        setSelectedProvider(null);
-        await new Promise(resolve => setTimeout(resolve, 500));
-        await loadFiles();
-      } catch (err) {
-        updateProviderState(providerId, {
-          status: 'error',
-          error: (err as Error).message,
-        });
-      }
-      return;
-    }
-
     try {
+      // Kiro uses a dedicated web OAuth page
+      if (providerId === 'kiro') {
+        const { apiBase } = useAuthStore.getState();
+        const kiroOAuthUrl = `${apiBase}/v0/oauth/kiro`;
+
+        const initialFiles = files.filter(f =>
+          f.provider?.toLowerCase().includes('kiro') ||
+          f.filename?.toLowerCase().includes('kiro')
+        );
+        const initialKiroCount = initialFiles.length;
+
+        await openInBrowser(kiroOAuthUrl);
+        updateProviderState(providerId, { url: kiroOAuthUrl, status: 'polling' });
+
+        const pollTimer = window.setInterval(async () => {
+          try {
+            const response = await authFilesApi.list();
+            const currentFiles = response?.files ?? [];
+            const currentKiroFiles = currentFiles.filter(f =>
+              f.provider?.toLowerCase().includes('kiro') ||
+              f.filename?.toLowerCase().includes('kiro')
+            );
+
+            // Detect if a new kiro file was added
+            if (currentKiroFiles.length > initialKiroCount) {
+              updateProviderState(providerId, { status: 'success' });
+              stopPolling(providerId);
+              setSelectedProvider(null);
+              setFiles(currentFiles);
+            }
+          } catch {
+            // Ignore polling errors - expected during network issues
+          }
+        }, 2000);
+        pollingTimers.current[providerId] = pollTimer;
+        return;
+      }
+
       const response = await oauthApi.startAuth(providerId, options);
       const url = response.url || response.auth_url;
       const state = response.state;
@@ -253,11 +281,11 @@ export function ProvidersPage() {
     }
   };
 
-    const copyToClipboard = async (text: string) => {
+  const copyToClipboard = useCallback(async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
     } catch { /* ignore */ }
-  };
+  }, []);
 
   if (!isAuthenticated) {
      return (
@@ -331,32 +359,34 @@ export function ProvidersPage() {
 
             <div className="space-y-1">
                  {files.map((file) => {
-                        let iconPath = '';
+                        const iconPath = getProviderIconPath(file.provider || '');
                         const p = (file.provider || '').toLowerCase();
-                        if (p.includes('antigravity')) iconPath = '/antigravity/antigravity.png';
-                        else if (p.includes('claude') || p.includes('anthropic')) iconPath = '/claude/claude.png';
-                        else if (p.includes('gemini')) iconPath = '/gemini/gemini.png';
-                        else if (p.includes('codex') || p.includes('openai')) iconPath = '/openai/openai.png';
-                        else if (p.includes('kiro')) iconPath = '/kiro/kiro.png';
 
                         let rawName: string;
                         if (p.includes('kiro')) {
-                          const filename = file.filename || file.id || '';
-                          const match = filename.match(/kiro-(\w+)/i);
-
-                          if (match && match[1]) {
-                            const method = match[1].charAt(0).toUpperCase() + match[1].slice(1).toLowerCase();
-                            rawName = `Kiro (${method})`;
+                          // First try top-level email/account fields
+                          const topEmail = (file.email as string) || (file.account as string);
+                          if (topEmail && topEmail.trim() !== '') {
+                            rawName = formatName(topEmail);
                           } else {
-                            const metaEmail = (file.metadata?.email as string) || (file['email'] as string);
-                            const authMethod = (file.metadata?.provider as string) || (file.metadata?.auth_method as string);
+                            // Fallback to filename parsing or metadata
+                            const filename = file.filename || file.id || '';
+                            const match = filename.match(/kiro-(\\w+)/i);
 
-                            if (metaEmail && metaEmail.trim() !== '') {
-                              rawName = formatName(metaEmail);
-                            } else if (authMethod) {
-                              rawName = `Kiro (${authMethod})`;
+                            if (match && match[1]) {
+                              const method = match[1].charAt(0).toUpperCase() + match[1].slice(1).toLowerCase();
+                              rawName = `Kiro (${method})`;
                             } else {
-                              rawName = 'Kiro';
+                              const metaEmail = (file.metadata?.email as string);
+                              const authMethod = (file.metadata?.provider as string) || (file.metadata?.auth_method as string);
+
+                              if (metaEmail && metaEmail.trim() !== '') {
+                                rawName = formatName(metaEmail);
+                              } else if (authMethod) {
+                                rawName = `Kiro (${authMethod})`;
+                              } else {
+                                rawName = 'Kiro';
+                              }
                             }
                           }
                         } else {
@@ -426,13 +456,7 @@ export function ProvidersPage() {
                     const isWaiting = state.status === 'waiting' || state.status === 'polling';
                     const isSuccess = state.status === 'success';
 
-                    let iconPath = '';
-                    const pid = provider.id;
-                    if (pid === 'antigravity') iconPath = '/antigravity/antigravity.png';
-                    else if (pid === 'anthropic' || (pid as string) === 'claude') iconPath = '/claude/claude.png';
-                    else if (pid === 'gemini-cli') iconPath = '/gemini/gemini.png';
-                    else if (pid === 'codex') iconPath = '/openai/openai.png';
-                    else if (pid === 'kiro') iconPath = '/kiro/kiro.png';
+                    const iconPath = getProviderIconPath(provider.id);
 
                     const isSelected = selectedProvider === provider.id;
 
