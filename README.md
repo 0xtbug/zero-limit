@@ -41,6 +41,7 @@ Unlike [Quotio](https://github.com/nguyenphutrong/quotio) (macOS-only, Swift), Z
 | OpenAI Codex | OAuth |
 | Antigravity | OAuth |
 | Kirocode | OAuth |
+| Github Copilot | OAuth |
 
 ## 📦 Installation
 
