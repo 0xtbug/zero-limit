@@ -1,6 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { RefreshCw, User, Clock, Search, Folder, List } from 'lucide-react';
+import { RefreshCw, User, Clock, Search, Folder, List, Ban } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import {
@@ -28,6 +28,7 @@ interface ProviderQuotaCardProps {
   loading: boolean;
   error?: string;
   items: QuotaItem[];
+  plan?: string;
   onRefresh: () => void;
   isPrivacyMode: boolean;
 }
@@ -39,6 +40,7 @@ export function ProviderQuotaCard({
   loading,
   error,
   items,
+  plan,
   onRefresh,
   isPrivacyMode
 }: ProviderQuotaCardProps) {
@@ -101,6 +103,9 @@ export function ProviderQuotaCard({
       };
     }).sort((a, b) => a.name.localeCompare(b.name));
   }, [items, provider]);
+
+  // Check if account is suspended
+  const isSuspended = plan?.toLowerCase() === 'suspended';
 
   return (
     <Card className="mb-4 overflow-hidden border bg-card text-card-foreground p-0">
@@ -226,12 +231,19 @@ export function ProviderQuotaCard({
                     {t('quotaCard.usage')}
                 </div>
 
-                {groupedItems.length === 0 && !loading && (
+                {groupedItems.length === 0 && !loading && !isSuspended && (
                     <div className="text-sm italic text-muted-foreground">{t('quotaCard.noUsage')}</div>
                 )}
 
+                {/* Suspended State */}
+                {isSuspended && (
+                  <div className="flex flex-col items-center justify-center py-8 gap-3">
+                    <Ban className="h-12 w-12 text-yellow-500" />
+                    <span className="text-lg font-semibold text-yellow-600">Temporarily Suspended</span>
+                  </div>
+                )}
 
-                {groupedItems.map((group, idx) => (
+                {!isSuspended && groupedItems.map((group, idx) => (
                     <div key={idx} className="space-y-2">
                         <div className="flex items-center justify-between text-sm">
                             <div className="flex items-center gap-2">

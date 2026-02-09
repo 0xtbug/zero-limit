@@ -4,7 +4,7 @@
 
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Clock, RefreshCw, Eye, List, ChevronDown } from 'lucide-react';
+import { Clock, RefreshCw, Eye, List, ChevronDown, Ban } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import {
   Dialog,
@@ -40,10 +40,14 @@ export function CompactQuotaCard({
   loading,
   error,
   items,
+  plan,
   onRefresh,
   isPrivacyMode
 }: CompactQuotaCardProps) {
   const [isExpanded, setIsExpanded] = useState(true);
+
+  // Check if account is suspended
+  const isSuspended = plan?.toLowerCase() === 'suspended';
 
   // Apply masking
   const displayEmail = isPrivacyMode ? maskEmail(email || '') : (email || '********@*****.com');
@@ -94,7 +98,7 @@ export function CompactQuotaCard({
   };
 
   return (
-    <Card className="p-4 space-y-3 hover:shadow-md transition-shadow">
+    <Card className="p-4 space-y-3 hover:shadow-md transition-shadow h-full flex flex-col">
       {/* Email with expand/collapse toggle */}
       <div className="flex items-center justify-between min-w-0">
         <div className="flex items-center gap-2 min-w-0 flex-1">
@@ -124,9 +128,17 @@ export function CompactQuotaCard({
         <div className="text-xs text-destructive truncate">{error}</div>
       )}
 
+      {/* Suspended State - centered icon and text */}
+      {!loading && !error && isSuspended && (
+        <div className="flex flex-col items-center justify-center py-6 gap-2 flex-1">
+          <Ban className="h-10 w-10 text-yellow-500" />
+          <span className="text-sm font-semibold text-yellow-600">Temporarily Suspended</span>
+        </div>
+      )}
+
       {/* Model badges grid with progress bars - expanded view */}
-      {!loading && !error && isExpanded && (
-        <div className="grid grid-cols-1 gap-2">
+      {!loading && !error && !isSuspended && isExpanded && (
+        <div className="grid grid-cols-1 gap-2 flex-1">
           {groupedItems.map((group, idx) => (
             <div key={idx} className="space-y-1">
               {/* Model info row */}
@@ -155,7 +167,7 @@ export function CompactQuotaCard({
       )}
 
       {/* Collapsed compact summary view - simple inline text */}
-      {!loading && !error && !isExpanded && (
+      {!loading && !error && !isSuspended && !isExpanded && (
         <div className="text-xs text-muted-foreground space-y-1">
           {groupedItems.map((group, idx) => (
             <div key={idx} className="flex items-center justify-between gap-2 min-w-0">
@@ -177,7 +189,7 @@ export function CompactQuotaCard({
       )}
 
       {/* Footer Row */}
-      <div className="flex items-center justify-between pt-2 border-t text-xs text-muted-foreground">
+      <div className="flex items-center justify-between pt-2 border-t text-xs text-muted-foreground mt-auto">
         <span>{new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}, {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}</span>
         <div className="flex items-center gap-1">
           {/* View Details Dialog */}

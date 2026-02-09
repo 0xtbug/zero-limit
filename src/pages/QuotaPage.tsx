@@ -416,6 +416,7 @@ export function QuotaPage() {
                 loading={file.loading}
                 error={file.error}
                 items={items}
+                plan={file.plan}
                 onRefresh={() => fetchQuotaForFile(file.fileId, file.originalFile)}
                 isPrivacyMode={isPrivacyMode}
               />
