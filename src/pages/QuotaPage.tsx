@@ -50,7 +50,7 @@ interface ProviderSection {
 }
 
 // Identify provider from filename - with null safety
-function getProviderType(file: AuthFile): 'antigravity' | 'codex' | 'gemini-cli' | 'kiro' | 'unknown' {
+function getProviderType(file: AuthFile): 'antigravity' | 'codex' | 'gemini-cli' | 'kiro' | 'copilot' | 'unknown' {
   // Handle missing filename
   const filename = (file?.filename || file?.id || '').toLowerCase();
 
@@ -58,6 +58,7 @@ function getProviderType(file: AuthFile): 'antigravity' | 'codex' | 'gemini-cli'
   if (filename.startsWith('codex-') || filename.includes('codex')) return 'codex';
   if (filename.startsWith('gemini-cli-') || filename.includes('gemini')) return 'gemini-cli';
   if (filename.startsWith('kiro-') || filename.includes('kiro')) return 'kiro';
+  if (filename.startsWith('github-copilot-') || filename.includes('copilot')) return 'copilot';
 
   // Fallback to provider field
   const provider = (file?.provider || '').toLowerCase();
@@ -65,6 +66,7 @@ function getProviderType(file: AuthFile): 'antigravity' | 'codex' | 'gemini-cli'
   if (provider.includes('codex')) return 'codex';
   if (provider.includes('gemini')) return 'gemini-cli';
   if (provider.includes('kiro')) return 'kiro';
+  if (provider.includes('copilot') || provider.includes('github')) return 'copilot';
 
   return 'unknown';
 }
@@ -101,6 +103,7 @@ export function QuotaPage() {
         codex: [],
         'gemini-cli': [],
         'kiro': [],
+        'copilot': [],
       };
 
       files.forEach((file) => {
@@ -123,6 +126,7 @@ export function QuotaPage() {
         { provider: 'codex', displayName: 'Codex (OpenAI)', files: grouped.codex },
         { provider: 'gemini-cli', displayName: 'Gemini CLI', files: grouped['gemini-cli'] },
         { provider: 'kiro', displayName: 'Kiro (CodeWhisperer)', files: grouped['kiro'] },
+        { provider: 'copilot', displayName: 'GitHub Copilot', files: grouped['copilot'] },
       ]);
 
       // Auto-fetch quota for all files
@@ -256,6 +260,19 @@ export function QuotaPage() {
             error: result.error
           } : f)
         } : s));
+      } else if (targetProvider === 'copilot') {
+        const result = await quotaApi.fetchCopilot(authIndex);
+
+        setSections((prev) => prev.map(s => s.provider === 'copilot' ? {
+          ...s,
+          files: s.files.map(f => f.fileId === fileId ? {
+            ...f,
+            loading: false,
+            plan: result.plan,
+            models: result.models,
+            error: result.error
+          } : f)
+        } : s));
       }
     } catch (err) {
       const msg = (err as Error).message;
@@ -278,6 +295,7 @@ export function QuotaPage() {
         if (key === 'codex') return '/openai/openai.png'; // Assuming Codex uses OpenAI icon
         if (key === 'gemini-cli') return '/gemini/gemini.png';
         if (key === 'kiro') return '/kiro/kiro.png';
+        if (key === 'copilot') return '/copilot/copilot.png';
         return undefined;
     };
 

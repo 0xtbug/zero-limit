@@ -15,6 +15,7 @@ const ANTIGRAVITY_QUOTA_URLS = [
 const GEMINI_CLI_QUOTA_URL = 'https://cloudcode-pa.googleapis.com/v1internal:retrieveUserQuota';
 const CODEX_USAGE_URL = 'https://chatgpt.com/backend-api/wham/usage';
 const KIRO_USAGE_URL = 'https://codewhisperer.us-east-1.amazonaws.com/getUsageLimits?isEmailRequired=true&origin=AI_EDITOR&resourceType=AGENTIC_REQUEST';
+const COPILOT_ENTITLEMENT_URL = 'https://api.github.com/copilot_internal/user';
 
 // Headers
 const ANTIGRAVITY_HEADERS = {
@@ -39,6 +40,12 @@ const KIRO_HEADERS = {
   'Content-Type': 'application/json',
   'User-Agent': 'aws-sdk-js/3.0.0 KiroIDE-0.1.0 os/windows lang/js md/nodejs/18.0.0',
   'x-amz-user-agent': 'aws-sdk-js/3.0.0'
+};
+
+const COPILOT_HEADERS = {
+  Authorization: 'Bearer $TOKEN$',
+  Accept: 'application/vnd.github+json',
+  'X-GitHub-Api-Version': '2022-11-28'
 };
 
 import {
@@ -87,6 +94,13 @@ export interface KiroQuotaResult {
   plan?: string;
   email?: string;
   tokenExpiresAt?: string;
+  error?: string;
+}
+
+export interface CopilotQuotaResult {
+  models: QuotaModel[];
+  plan?: string;
+  username?: string;
   error?: string;
 }
 
@@ -398,6 +412,96 @@ function parseKiroQuota(body: unknown): KiroQuotaResult {
   return { models, plan, email };
 }
 
+// Parse Copilot entitlement response
+function parseCopilotQuota(body: unknown): CopilotQuotaResult {
+  const payload = body as Record<string, unknown> | null;
+  if (!payload) return { models: [] };
+
+  const models: QuotaModel[] = [];
+
+  // Extract plan type
+  const accessTypeSku = (payload.access_type_sku as string) || '';
+  const copilotPlan = (payload.copilot_plan as string) || '';
+  let plan = 'Unknown';
+
+  const sku = accessTypeSku.toLowerCase();
+  const planLower = copilotPlan.toLowerCase();
+
+  if (sku.includes('enterprise') || planLower === 'enterprise') {
+    plan = 'Enterprise';
+  } else if (sku.includes('business') || planLower === 'business') {
+    plan = 'Business';
+  } else if (sku.includes('educational') || sku.includes('pro') || planLower.includes('pro')) {
+    plan = 'Pro';
+  } else if (planLower === 'individual' && !sku.includes('free_limited')) {
+    plan = 'Pro';
+  } else if (sku.includes('free_limited') || sku === 'free' || planLower.includes('free')) {
+    plan = 'Free';
+  } else if (copilotPlan) {
+    plan = copilotPlan.charAt(0).toUpperCase() + copilotPlan.slice(1);
+  }
+
+  // Parse reset date
+  const resetDateStr = (payload.quota_reset_date_utc as string) || (payload.quota_reset_date as string) || (payload.limited_user_reset_date as string);
+  let resetTime: string | undefined;
+  if (resetDateStr) {
+    resetTime = formatResetTime(resetDateStr);
+  }
+
+  // Method 1: Parse quota_snapshots (used by paid plans)
+  const quotaSnapshots = payload.quota_snapshots as Record<string, unknown> | undefined;
+  if (quotaSnapshots) {
+    const parseSnapshot = (name: string, snapshot: unknown, defaultTotal: number) => {
+      const snap = snapshot as Record<string, unknown> | undefined;
+      if (!snap || snap.unlimited === true) return;
+
+      let percentage = 100;
+      if (typeof snap.percent_remaining === 'number') {
+        percentage = Math.min(100, Math.max(0, snap.percent_remaining));
+      } else {
+        const remaining = (snap.remaining as number) ?? 0;
+        const total = (snap.entitlement as number) ?? defaultTotal;
+        if (total > 0) {
+          percentage = Math.min(100, Math.max(0, (remaining / total) * 100));
+        }
+      }
+
+      models.push({ name, percentage: Math.round(percentage), resetTime });
+    };
+
+    parseSnapshot('Chat', quotaSnapshots.chat, 50);
+    parseSnapshot('Completions', quotaSnapshots.completions, 2000);
+    parseSnapshot('Premium', quotaSnapshots.premium_interactions, 50);
+  }
+
+  // Method 2: Parse limited_user_quotas + monthly_quotas (for free/individual plans)
+  if (models.length === 0) {
+    const limitedQuotas = payload.limited_user_quotas as Record<string, unknown> | undefined;
+    const monthlyQuotas = payload.monthly_quotas as Record<string, unknown> | undefined;
+
+    if (limitedQuotas && monthlyQuotas) {
+      const parseLimit = (name: string, remainingKey: string, totalKey: string) => {
+        const remaining = (limitedQuotas[remainingKey] as number) ?? 0;
+        const total = (monthlyQuotas[totalKey] as number) ?? 0;
+        if (total > 0) {
+          const percentage = Math.min(100, Math.max(0, (remaining / total) * 100));
+          models.push({ name, percentage: Math.round(percentage), resetTime });
+        }
+      };
+
+      parseLimit('Chat', 'chat', 'chat');
+      parseLimit('Completions', 'completions', 'completions');
+    }
+  }
+
+  // Fallback if no quota info found
+  if (models.length === 0) {
+    models.push({ name: 'Copilot', percentage: 100, resetTime: undefined });
+  }
+
+  return { models, plan };
+}
+
 export const quotaApi = {
   /**
    * Fetch Antigravity quota for an auth file
@@ -506,6 +610,33 @@ export const quotaApi = {
           models: [{ name: 'Kiro', percentage: 100, resetTime: reason }],
           plan: 'Suspended'
         };
+      }
+
+      return { models: [], error: formatQuotaError(result) };
+    } catch (err) {
+      return { models: [], error: (err as Error).message };
+    }
+  },
+
+  /**
+   * Fetch GitHub Copilot quota for an auth file
+   */
+  async fetchCopilot(authIndex: string): Promise<CopilotQuotaResult> {
+    try {
+      const result = await apiCallApi.request({
+        authIndex,
+        method: 'GET',
+        url: COPILOT_ENTITLEMENT_URL,
+        header: { ...COPILOT_HEADERS }
+      });
+
+      if (result.statusCode >= 200 && result.statusCode < 300) {
+        return parseCopilotQuota(result.body);
+      }
+
+      // Handle 401/403 - token expired or no subscription
+      if (result.statusCode === 401 || result.statusCode === 403) {
+        return { models: [], error: 'Token invalid or no Copilot subscription' };
       }
 
       return { models: [], error: formatQuotaError(result) };

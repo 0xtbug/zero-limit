@@ -47,6 +47,11 @@ interface ProviderState {
   url?: string;
   state?: string;
   error?: string;
+  // Copilot device flow specific
+  userCode?: string;
+  deviceCode?: string;
+  expiresIn?: number;
+  interval?: number;
 }
 
 // --- Helpers ---
@@ -79,6 +84,7 @@ function getProviderIconPath(providerId: string): string {
   if (id.includes('gemini')) return '/gemini/gemini.png';
   if (id.includes('codex') || id.includes('openai')) return '/openai/openai.png';
   if (id.includes('kiro')) return '/kiro/kiro.png';
+  if (id.includes('copilot') || id.includes('github')) return '/copilot/copilot.png';
   return '';
 }
 
@@ -228,6 +234,69 @@ export function ProvidersPage() {
           }
         }, 2000);
         pollingTimers.current[providerId] = pollTimer;
+        return;
+      }
+
+      // Copilot uses device code flow via backend
+      if (providerId === 'copilot') {
+        try {
+          const response = await oauthApi.startAuth('copilot');
+          const url = response.url || response.verification_uri;
+          const state = response.state;
+          const userCode = response.user_code;
+
+          if (!url) {
+            throw new Error('No verification URL returned from server');
+          }
+
+          updateProviderState(providerId, {
+            status: 'polling',
+            url,
+            state,
+            userCode
+          });
+
+          // Open verification URL
+          await openInBrowser(url);
+
+          // Poll for auth status if we have a state
+          if (state) {
+            startPolling(providerId, state);
+          } else {
+            // Fallback: poll for new auth files
+            const initialFiles = files.filter(f =>
+              f.provider?.toLowerCase().includes('github') ||
+              f.filename?.toLowerCase().includes('github')
+            );
+            const initialCount = initialFiles.length;
+
+            const pollTimer = window.setInterval(async () => {
+              try {
+                const listResponse = await authFilesApi.list();
+                const currentFiles = listResponse?.files ?? [];
+                const currentGithubFiles = currentFiles.filter(f =>
+                  f.provider?.toLowerCase().includes('github') ||
+                  f.filename?.toLowerCase().includes('github')
+                );
+
+                if (currentGithubFiles.length > initialCount) {
+                  updateProviderState(providerId, { status: 'success' });
+                  stopPolling(providerId);
+                  setSelectedProvider(null);
+                  setFiles(currentFiles);
+                }
+              } catch {
+                // Ignore polling errors
+              }
+            }, 3000);
+            pollingTimers.current[providerId] = pollTimer;
+          }
+        } catch (err) {
+          updateProviderState(providerId, {
+            status: 'error',
+            error: (err as Error).message
+          });
+        }
         return;
       }
 
@@ -506,6 +575,28 @@ export function ProvidersPage() {
                                     {/* Normal Auth Flow (Polling/Waiting) - Only if NOT Error and NOT Idle */}
                                     {state.status !== 'idle' && state.status !== 'error' && (
                                         <>
+                                            {/* Copilot Device Code Display */}
+                                            {provider.id === 'copilot' && state.userCode && (
+                                              <div className="space-y-3">
+                                                <p className="text-sm text-muted-foreground">
+                                                  {t('providers.copilotInstructions', 'Enter the code below at GitHub:')}
+                                                </p>
+                                                <div className="flex items-center justify-center gap-3">
+                                                  <code className="text-3xl font-mono font-bold tracking-widest bg-muted px-4 py-2 rounded-lg">
+                                                    {state.userCode}
+                                                  </code>
+                                                  <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => copyToClipboard(state.userCode!)}
+                                                    title={t('common.copy')}
+                                                  >
+                                                    <ClipboardCopy className="h-4 w-4" />
+                                                  </Button>
+                                                </div>
+                                              </div>
+                                            )}
+
                                             <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                                 <Loader2 className="h-4 w-4 animate-spin" />
                                                 <span>{t('providers.completeLogin')}</span>
