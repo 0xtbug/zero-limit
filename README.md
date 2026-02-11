@@ -3,11 +3,11 @@
 <p align="center">
 <img src="./public/icon.png" width="128" height="128" alt="Logo">
 <br />
-A Tauri-based alternative to Quotio for Windows
+A cross-platform AI coding assistant quota tracker
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Platform-Windows-blue" alt="Platform">
+  <img src="https://img.shields.io/badge/Platform-Windows%20|%20macOS%20|%20Linux-blue" alt="Platform">
   <img src="https://img.shields.io/badge/Built%20with-Tauri%20%2B%20React-orange" alt="Built with">
   <img src="https://img.shields.io/badge/License-MIT-green" alt="License">
 </p>
@@ -16,14 +16,13 @@ A Tauri-based alternative to Quotio for Windows
 
 ## 🎯 What is ZeroLimit?
 
-ZeroLimit is a **lightweight Windows desktop application** for monitoring AI coding assistant quotas using [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI). Track your usage across Antigravity, Anthropic Claude, Codex (OpenAI), and Gemini CLI accounts in one dashboard.
+ZeroLimit is a **cross-platform desktop application** for monitoring AI coding assistant quotas using [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI). Track your usage across Antigravity, Anthropic Claude, Codex (OpenAI), Gemini CLI, Kiro, and GitHub Copilot accounts in one dashboard.
 
-Unlike [Quotio](https://github.com/nguyenphutrong/quotio) (macOS-only, Swift), ZeroLimit is built with **Tauri + React + Rust** and runs on **Windows**.
-
+Built with **Tauri + React + Rust**, ZeroLimit runs on **Windows**, **macOS**, and **Linux**.
 
 ## 🚀 Key Features
 
-- 🔌 **Multi-Provider Support** - Monitor Gemini, Claude, OpenAI, Antigravity accounts
+- 🔌 **Multi-Provider Support** - Monitor Gemini, Claude, OpenAI, Antigravity, Kiro, and Copilot accounts
 - 📊 **Real-time Quota Dashboard** - Track usage per account with visual progress bars
 - 🖥️ **System Tray Integration** - Quick access from your taskbar
 - ⚡ **One-Click Proxy Control** - Start/stop CLIProxyAPI with a single click
@@ -47,8 +46,26 @@ Unlike [Quotio](https://github.com/nguyenphutrong/quotio) (macOS-only, Swift), Z
 
 ### Windows
 Download from [Releases](https://github.com/0xtbug/zero-limit/releases):
-- `ZeroLimit_x.x.x_x64-setup.exe` (NSIS installer)
-- `ZeroLimit_x.x.x_x64_en-US.msi` (MSI installer)
+- `ZeroLimit_x.x.x_x64-setup.exe` - NSIS installer (x64)
+- `ZeroLimit_x.x.x_arm64-setup.exe` - NSIS installer (ARM64)
+- `ZeroLimit_x.x.x_x64_en-US.msi` - MSI installer (x64)
+- `ZeroLimit_x.x.x_portable.exe` - Portable executable
+
+### macOS
+Download from [Releases](https://github.com/0xtbug/zero-limit/releases):
+- `ZeroLimit_x.x.x_aarch64.dmg` - Apple Silicon (M1/M2/M3)
+- `ZeroLimit_x.x.x_x64.dmg` - Intel
+
+> ⚠️ **Note**: The app is not signed with an Apple Developer certificate. If macOS blocks the app, run:
+> ```bash
+> xattr -cr /Applications/ZeroLimit.app
+> ```
+
+### Linux
+Download from [Releases](https://github.com/0xtbug/zero-limit/releases):
+- `.deb` - Debian/Ubuntu
+- `.rpm` - Fedora/RHEL
+- `.AppImage` - Universal
 
 ### Building from Source
 
@@ -66,6 +83,7 @@ pnpm run tauri dev
 # Production build
 pnpm run tauri build
 ```
+
 ## 📸 Screenshots
 
 ### Dashboard
