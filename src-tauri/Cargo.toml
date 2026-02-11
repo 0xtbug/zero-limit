@@ -1,6 +1,6 @@
 [package]
 name = "zero-limit"
-version = "1.0.0"
+version = "1.0.9"
 description = "ZeroLimit AI Coding Assistant Quota Tracker"
 authors = ["0xtbug"]
 edition = "2021"
