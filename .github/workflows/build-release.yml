@@ -2,8 +2,14 @@ name: Build and Release
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 1.1.0)'
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -13,6 +19,9 @@ env:
   TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
 
 jobs:
+  # ===========================================
+  # 1. Create Release + Version Bump
+  # ===========================================
   create-release:
     runs-on: ubuntu-latest
     outputs:
@@ -21,12 +30,48 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Get version from tauri.conf.json
+      - name: Get version
         id: get_version
         run: |
-          VERSION=$(jq -r '.version' src-tauri/tauri.conf.json)
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="${GITHUB_REF#refs/tags/v}"
+          fi
+          VERSION="${VERSION#v}"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Releasing version: $VERSION"
+
+      - name: Bump version in project files
+        run: |
+          chmod +x ./scripts/bump-version.sh
+          ./scripts/bump-version.sh "${{ steps.get_version.outputs.version }}"
+
+      - name: Commit version bump
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          if git diff --quiet package.json src-tauri/tauri.conf.json src-tauri/Cargo.toml; then
+            echo "No version changes to commit"
+          else
+            git add package.json src-tauri/tauri.conf.json src-tauri/Cargo.toml
+            git commit -m "chore: bump version to ${{ steps.get_version.outputs.version }} [skip ci]"
+            git push origin HEAD:main
+          fi
+
+      - name: Create tag (for workflow_dispatch)
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          TAG_NAME="v${{ steps.get_version.outputs.version }}"
+          if ! git tag -l | grep -q "^${TAG_NAME}$"; then
+            git tag -a "${TAG_NAME}" -m "Release ${{ steps.get_version.outputs.version }}"
+            git push origin "${TAG_NAME}"
+          fi
 
       - name: Create draft release
         id: create_release
@@ -36,13 +81,24 @@ jobs:
           name: ZeroLimit v${{ steps.get_version.outputs.version }}
           draft: true
           generate_release_notes: true
+          body: |
 
+            > ⚠️ **Note**: macOS builds won't be code-signed unless you add Apple signing secrets. Unsigned macOS apps require users to run:
+            > ```bash
+            > xattr -cr /Applications/ZeroLimit.app
+            > ```
+
+  # ===========================================
+  # 2. Build Windows x64
+  # ===========================================
   build-windows-x64:
     needs: create-release
     runs-on: windows-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: main
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -95,15 +151,20 @@ jobs:
       - name: Upload signatures for latest.json
         uses: actions/upload-artifact@v4
         with:
-          name: signatures-x64
+          name: signatures-windows-x64
           path: src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.sig
 
+  # ===========================================
+  # 3. Build Windows ARM64
+  # ===========================================
   build-windows-arm64:
     needs: create-release
     runs-on: windows-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: main
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -158,22 +219,169 @@ jobs:
       - name: Upload signatures for latest.json
         uses: actions/upload-artifact@v4
         with:
-          name: signatures-arm64
+          name: signatures-windows-arm64
           path: src-tauri/target/aarch64-pc-windows-msvc/release/bundle/nsis/*.sig
 
+  # ===========================================
+  # 4. Build macOS (Universal: x64 + ARM64)
+  # ===========================================
+  build-macos:
+    needs: create-release
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+
+      - name: Cache Cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            src-tauri/target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Install frontend dependencies
+        run: pnpm install
+
+      - name: Build Tauri (Apple Silicon)
+        run: pnpm tauri build --target aarch64-apple-darwin
+
+      - name: Build Tauri (Intel)
+        run: pnpm tauri build --target x86_64-apple-darwin
+
+      - name: Upload artifacts to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.create-release.outputs.version }}
+          draft: true
+          files: |
+            src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg
+            src-tauri/target/aarch64-apple-darwin/release/bundle/macos/*.app.tar.gz
+            src-tauri/target/aarch64-apple-darwin/release/bundle/macos/*.app.tar.gz.sig
+            src-tauri/target/x86_64-apple-darwin/release/bundle/dmg/*.dmg
+            src-tauri/target/x86_64-apple-darwin/release/bundle/macos/*.app.tar.gz
+            src-tauri/target/x86_64-apple-darwin/release/bundle/macos/*.app.tar.gz.sig
+
+      - name: Upload signatures for latest.json
+        uses: actions/upload-artifact@v4
+        with:
+          name: signatures-macos
+          path: |
+            src-tauri/target/aarch64-apple-darwin/release/bundle/macos/*.app.tar.gz.sig
+            src-tauri/target/x86_64-apple-darwin/release/bundle/macos/*.app.tar.gz.sig
+
+  # ===========================================
+  # 5. Build Linux x64
+  # ===========================================
+  build-linux:
+    needs: create-release
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            libssl-dev \
+            libgtk-3-dev \
+            libsoup-3.0-dev \
+            javascriptcoregtk-4.1-dev
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            src-tauri/target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Install frontend dependencies
+        run: pnpm install
+
+      - name: Build Tauri
+        run: pnpm tauri build
+
+      - name: Upload artifacts to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.create-release.outputs.version }}
+          draft: true
+          files: |
+            src-tauri/target/release/bundle/deb/*.deb
+            src-tauri/target/release/bundle/rpm/*.rpm
+            src-tauri/target/release/bundle/appimage/*.AppImage
+            src-tauri/target/release/bundle/appimage/*.AppImage.tar.gz
+            src-tauri/target/release/bundle/appimage/*.AppImage.tar.gz.sig
+
+      - name: Upload signatures for latest.json
+        uses: actions/upload-artifact@v4
+        with:
+          name: signatures-linux
+          path: src-tauri/target/release/bundle/appimage/*.AppImage.tar.gz.sig
+
+  # ===========================================
+  # 6. Publish Release + Generate latest.json
+  # ===========================================
   publish-release:
-    needs: [create-release, build-windows-x64, build-windows-arm64]
+    needs: [create-release, build-windows-x64, build-windows-arm64, build-macos, build-linux]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download signatures
+      - name: Download all signatures
         uses: actions/download-artifact@v4
         with:
           pattern: signatures-*
           merge-multiple: true
           path: signatures
+
+      - name: List signatures (debug)
+        run: find signatures -type f | sort
 
       - name: Generate latest.json
         run: |
@@ -181,28 +389,47 @@ jobs:
           REPO="${{ github.repository }}"
           DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
-          # Read signature files
-          # Use specific version to avoid matching multiple files if present
-          X64_SIG=$(cat signatures/*_${VERSION}_x64*.exe.sig | head -n 1)
-          ARM64_SIG=$(cat signatures/*_${VERSION}_arm64*.exe.sig | head -n 1)
+          # Read signature files (use find to be resilient to naming variations)
+          WIN_X64_SIG=$(find signatures -name "*x64*setup*.sig" -o -name "*x86_64*setup*.sig" | head -1 | xargs cat 2>/dev/null || echo "")
+          WIN_ARM64_SIG=$(find signatures -name "*arm64*setup*.sig" -o -name "*aarch64*setup*.sig" | head -1 | xargs cat 2>/dev/null || echo "")
+          MACOS_ARM64_SIG=$(find signatures -path "*aarch64-apple*" -name "*.sig" | head -1 | xargs cat 2>/dev/null || echo "")
+          MACOS_X64_SIG=$(find signatures -path "*x86_64-apple*" -name "*.sig" | head -1 | xargs cat 2>/dev/null || echo "")
+          LINUX_SIG=$(find signatures -name "*.AppImage.tar.gz.sig" | head -1 | xargs cat 2>/dev/null || echo "")
 
-          cat > latest.json << EOF
-          {
-            "version": "$VERSION",
-            "notes": "See release notes on GitHub",
-            "pub_date": "$DATE",
-            "platforms": {
-              "windows-x86_64": {
-                "signature": "$X64_SIG",
-                "url": "https://github.com/$REPO/releases/download/v$VERSION/ZeroLimit_${VERSION}_x64-setup.exe"
-              },
-              "windows-aarch64": {
-                "signature": "$ARM64_SIG",
-                "url": "https://github.com/$REPO/releases/download/v$VERSION/ZeroLimit_${VERSION}_arm64-setup.exe"
-              }
-            }
-          }
-          EOF
+          # Build platforms JSON dynamically
+          PLATFORMS="{"
+
+          if [ -n "$WIN_X64_SIG" ]; then
+            PLATFORMS="$PLATFORMS\"windows-x86_64\":{\"signature\":\"$WIN_X64_SIG\",\"url\":\"https://github.com/$REPO/releases/download/v$VERSION/ZeroLimit_${VERSION}_x64-setup.exe\"},"
+          fi
+
+          if [ -n "$WIN_ARM64_SIG" ]; then
+            PLATFORMS="$PLATFORMS\"windows-aarch64\":{\"signature\":\"$WIN_ARM64_SIG\",\"url\":\"https://github.com/$REPO/releases/download/v$VERSION/ZeroLimit_${VERSION}_arm64-setup.exe\"},"
+          fi
+
+          if [ -n "$MACOS_ARM64_SIG" ]; then
+            MACOS_ARM64_FILENAME=$(find signatures -path "*aarch64-apple*" -name "*.sig" | head -1 | xargs basename | sed 's/.sig$//')
+            PLATFORMS="$PLATFORMS\"darwin-aarch64\":{\"signature\":\"$MACOS_ARM64_SIG\",\"url\":\"https://github.com/$REPO/releases/download/v$VERSION/$MACOS_ARM64_FILENAME\"},"
+          fi
+
+          if [ -n "$MACOS_X64_SIG" ]; then
+            MACOS_X64_FILENAME=$(find signatures -path "*x86_64-apple*" -name "*.sig" | head -1 | xargs basename | sed 's/.sig$//')
+            PLATFORMS="$PLATFORMS\"darwin-x86_64\":{\"signature\":\"$MACOS_X64_SIG\",\"url\":\"https://github.com/$REPO/releases/download/v$VERSION/$MACOS_X64_FILENAME\"},"
+          fi
+
+          if [ -n "$LINUX_SIG" ]; then
+            LINUX_FILENAME=$(find signatures -name "*.AppImage.tar.gz.sig" | head -1 | xargs basename | sed 's/.sig$//')
+            PLATFORMS="$PLATFORMS\"linux-x86_64\":{\"signature\":\"$LINUX_SIG\",\"url\":\"https://github.com/$REPO/releases/download/v$VERSION/$LINUX_FILENAME\"},"
+          fi
+
+          # Remove trailing comma and close
+          PLATFORMS="${PLATFORMS%,}}"
+
+          # Write latest.json
+          echo "{\"version\":\"$VERSION\",\"notes\":\"See release notes on GitHub\",\"pub_date\":\"$DATE\",\"platforms\":$PLATFORMS}" | jq '.' > latest.json
+
+          echo "Generated latest.json:"
+          cat latest.json
 
       - name: Upload latest.json
         uses: softprops/action-gh-release@v2
