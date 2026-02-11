@@ -130,11 +130,21 @@ jobs:
       - name: Build Tauri (x64)
         run: pnpm tauri build --target x86_64-pc-windows-msvc
 
-      - name: Prepare portable executable
+      - name: Rename and Prepare artifacts
         shell: bash
         run: |
           VERSION="${{ needs.create-release.outputs.version }}"
-          cp src-tauri/target/x86_64-pc-windows-msvc/release/zero-limit.exe "ZeroLimit_${VERSION}_portable.exe"
+
+          # Portable EXE
+          cp src-tauri/target/x86_64-pc-windows-msvc/release/zero-limit.exe "ZeroLimit_${VERSION}_Windows_x64_portable.exe"
+
+          # NSIS Installer
+          mv src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/ZeroLimit_${VERSION}_x64-setup.exe "ZeroLimit_${VERSION}_Windows_x64-setup.exe"
+          mv src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/ZeroLimit_${VERSION}_x64-setup.exe.sig "ZeroLimit_${VERSION}_Windows_x64-setup.exe.sig"
+
+          # MSI Installer
+          mv src-tauri/target/x86_64-pc-windows-msvc/release/bundle/msi/ZeroLimit_${VERSION}_x64_en-US.msi "ZeroLimit_${VERSION}_Windows_x64.msi"
+          mv src-tauri/target/x86_64-pc-windows-msvc/release/bundle/msi/ZeroLimit_${VERSION}_x64_en-US.msi.sig "ZeroLimit_${VERSION}_Windows_x64.msi.sig"
 
       - name: Upload artifacts to release
         uses: softprops/action-gh-release@v2
@@ -142,17 +152,17 @@ jobs:
           tag_name: v${{ needs.create-release.outputs.version }}
           draft: true
           files: |
-            src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe
-            src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe.sig
-            src-tauri/target/x86_64-pc-windows-msvc/release/bundle/msi/*.msi
-            src-tauri/target/x86_64-pc-windows-msvc/release/bundle/msi/*.msi.sig
-            ZeroLimit_*_portable.exe
+            ZeroLimit_*_Windows_x64-setup.exe
+            ZeroLimit_*_Windows_x64-setup.exe.sig
+            ZeroLimit_*_Windows_x64.msi
+            ZeroLimit_*_Windows_x64.msi.sig
+            ZeroLimit_*_Windows_x64_portable.exe
 
       - name: Upload signatures for latest.json
         uses: actions/upload-artifact@v4
         with:
           name: signatures-windows-x64
-          path: src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.sig
+          path: ZeroLimit_*_Windows_x64-setup.exe.sig
 
   # ===========================================
   # 3. Build Windows ARM64
@@ -198,11 +208,21 @@ jobs:
       - name: Build Tauri (ARM64)
         run: pnpm tauri build --target aarch64-pc-windows-msvc
 
-      - name: Prepare portable executable
+      - name: Rename and Prepare artifacts
         shell: bash
         run: |
           VERSION="${{ needs.create-release.outputs.version }}"
-          cp src-tauri/target/aarch64-pc-windows-msvc/release/zero-limit.exe "ZeroLimit_${VERSION}_arm64_portable.exe"
+
+          # Portable EXE
+          cp src-tauri/target/aarch64-pc-windows-msvc/release/zero-limit.exe "ZeroLimit_${VERSION}_Windows_arm64_portable.exe"
+
+          # NSIS Installer
+          mv src-tauri/target/aarch64-pc-windows-msvc/release/bundle/nsis/ZeroLimit_${VERSION}_arm64-setup.exe "ZeroLimit_${VERSION}_Windows_arm64-setup.exe"
+          mv src-tauri/target/aarch64-pc-windows-msvc/release/bundle/nsis/ZeroLimit_${VERSION}_arm64-setup.exe.sig "ZeroLimit_${VERSION}_Windows_arm64-setup.exe.sig"
+
+          # MSI Installer
+          mv src-tauri/target/aarch64-pc-windows-msvc/release/bundle/msi/ZeroLimit_${VERSION}_arm64_en-US.msi "ZeroLimit_${VERSION}_Windows_arm64.msi"
+          mv src-tauri/target/aarch64-pc-windows-msvc/release/bundle/msi/ZeroLimit_${VERSION}_arm64_en-US.msi.sig "ZeroLimit_${VERSION}_Windows_arm64.msi.sig"
 
       - name: Upload artifacts to release
         uses: softprops/action-gh-release@v2
@@ -210,17 +230,17 @@ jobs:
           tag_name: v${{ needs.create-release.outputs.version }}
           draft: true
           files: |
-            src-tauri/target/aarch64-pc-windows-msvc/release/bundle/nsis/*.exe
-            src-tauri/target/aarch64-pc-windows-msvc/release/bundle/nsis/*.exe.sig
-            src-tauri/target/aarch64-pc-windows-msvc/release/bundle/msi/*.msi
-            src-tauri/target/aarch64-pc-windows-msvc/release/bundle/msi/*.msi.sig
-            ZeroLimit_*_portable.exe
+            ZeroLimit_*_Windows_arm64-setup.exe
+            ZeroLimit_*_Windows_arm64-setup.exe.sig
+            ZeroLimit_*_Windows_arm64.msi
+            ZeroLimit_*_Windows_arm64.msi.sig
+            ZeroLimit_*_Windows_arm64_portable.exe
 
       - name: Upload signatures for latest.json
         uses: actions/upload-artifact@v4
         with:
           name: signatures-windows-arm64
-          path: src-tauri/target/aarch64-pc-windows-msvc/release/bundle/nsis/*.sig
+          path: ZeroLimit_*_Windows_arm64-setup.exe.sig
 
   # ===========================================
   # 4. Build macOS (Universal: x64 + ARM64)
@@ -269,26 +289,38 @@ jobs:
       - name: Build Tauri (Intel)
         run: pnpm tauri build --target x86_64-apple-darwin
 
+      - name: Rename and Prepare artifacts
+        run: |
+          VERSION="${{ needs.create-release.outputs.version }}"
+
+          # Rename Apple Silicon artifacts
+          mv src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/ZeroLimit_${VERSION}_aarch64.dmg "ZeroLimit_${VERSION}_macOS_aarch64.dmg"
+          mv src-tauri/target/aarch64-apple-darwin/release/bundle/macos/ZeroLimit.app.tar.gz "ZeroLimit_${VERSION}_macOS_aarch64.app.tar.gz"
+          mv src-tauri/target/aarch64-apple-darwin/release/bundle/macos/ZeroLimit.app.tar.gz.sig "ZeroLimit_${VERSION}_macOS_aarch64.app.tar.gz.sig"
+
+          # Rename Intel artifacts
+          mv src-tauri/target/x86_64-apple-darwin/release/bundle/dmg/ZeroLimit_${VERSION}_x64.dmg "ZeroLimit_${VERSION}_macOS_x64.dmg"
+          mv src-tauri/target/x86_64-apple-darwin/release/bundle/macos/ZeroLimit.app.tar.gz "ZeroLimit_${VERSION}_macOS_x64.app.tar.gz"
+          mv src-tauri/target/x86_64-apple-darwin/release/bundle/macos/ZeroLimit.app.tar.gz.sig "ZeroLimit_${VERSION}_macOS_x64.app.tar.gz.sig"
+
       - name: Upload artifacts to release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ needs.create-release.outputs.version }}
           draft: true
           files: |
-            src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg
-            src-tauri/target/aarch64-apple-darwin/release/bundle/macos/*.app.tar.gz
-            src-tauri/target/aarch64-apple-darwin/release/bundle/macos/*.app.tar.gz.sig
-            src-tauri/target/x86_64-apple-darwin/release/bundle/dmg/*.dmg
-            src-tauri/target/x86_64-apple-darwin/release/bundle/macos/*.app.tar.gz
-            src-tauri/target/x86_64-apple-darwin/release/bundle/macos/*.app.tar.gz.sig
+            ZeroLimit_*_macOS_aarch64.dmg
+            ZeroLimit_*_macOS_x64.dmg
+            ZeroLimit_*_macOS_aarch64.app.tar.gz
+            ZeroLimit_*_macOS_aarch64.app.tar.gz.sig
+            ZeroLimit_*_macOS_x64.app.tar.gz
+            ZeroLimit_*_macOS_x64.app.tar.gz.sig
 
       - name: Upload signatures for latest.json
         uses: actions/upload-artifact@v4
         with:
           name: signatures-macos
-          path: |
-            src-tauri/target/aarch64-apple-darwin/release/bundle/macos/*.app.tar.gz.sig
-            src-tauri/target/x86_64-apple-darwin/release/bundle/macos/*.app.tar.gz.sig
+          path: ZeroLimit_*_macOS_*.app.tar.gz.sig
 
   # ===========================================
   # 5. Build Linux x64
@@ -345,23 +377,38 @@ jobs:
       - name: Build Tauri
         run: pnpm tauri build
 
+      - name: Rename and Prepare artifacts
+        run: |
+          VERSION="${{ needs.create-release.outputs.version }}"
+
+          # Debian (using wildcard for safety)
+          mv src-tauri/target/release/bundle/deb/*_${VERSION}_amd64.deb "ZeroLimit_${VERSION}_Linux_x64.deb"
+
+          # RPM (using wildcard for safety)
+          mv src-tauri/target/release/bundle/rpm/*-${VERSION}-1.x86_64.rpm "ZeroLimit_${VERSION}_Linux_x64.rpm"
+
+          # AppImage (using wildcard for safety)
+          mv src-tauri/target/release/bundle/appimage/*_${VERSION}_amd64.AppImage "ZeroLimit_${VERSION}_Linux_x64.AppImage"
+          mv src-tauri/target/release/bundle/appimage/*_${VERSION}_amd64.AppImage.tar.gz "ZeroLimit_${VERSION}_Linux_x64.AppImage.tar.gz"
+          mv src-tauri/target/release/bundle/appimage/*_${VERSION}_amd64.AppImage.tar.gz.sig "ZeroLimit_${VERSION}_Linux_x64.AppImage.tar.gz.sig"
+
       - name: Upload artifacts to release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ needs.create-release.outputs.version }}
           draft: true
           files: |
-            src-tauri/target/release/bundle/deb/*.deb
-            src-tauri/target/release/bundle/rpm/*.rpm
-            src-tauri/target/release/bundle/appimage/*.AppImage
-            src-tauri/target/release/bundle/appimage/*.AppImage.tar.gz
-            src-tauri/target/release/bundle/appimage/*.AppImage.tar.gz.sig
+            ZeroLimit_*_Linux_x64.deb
+            ZeroLimit_*_Linux_x64.rpm
+            ZeroLimit_*_Linux_x64.AppImage
+            ZeroLimit_*_Linux_x64.AppImage.tar.gz
+            ZeroLimit_*_Linux_x64.AppImage.tar.gz.sig
 
       - name: Upload signatures for latest.json
         uses: actions/upload-artifact@v4
         with:
           name: signatures-linux
-          path: src-tauri/target/release/bundle/appimage/*.AppImage.tar.gz.sig
+          path: ZeroLimit_*_Linux_x64.AppImage.tar.gz.sig
 
   # ===========================================
   # 6. Publish Release + Generate latest.json
@@ -389,37 +436,34 @@ jobs:
           REPO="${{ github.repository }}"
           DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
-          # Read signature files (use find to be resilient to naming variations)
-          WIN_X64_SIG=$(find signatures -name "*x64*setup*.sig" -o -name "*x86_64*setup*.sig" | head -1 | xargs cat 2>/dev/null || echo "")
-          WIN_ARM64_SIG=$(find signatures -name "*arm64*setup*.sig" -o -name "*aarch64*setup*.sig" | head -1 | xargs cat 2>/dev/null || echo "")
-          MACOS_ARM64_SIG=$(find signatures -path "*aarch64-apple*" -name "*.sig" | head -1 | xargs cat 2>/dev/null || echo "")
-          MACOS_X64_SIG=$(find signatures -path "*x86_64-apple*" -name "*.sig" | head -1 | xargs cat 2>/dev/null || echo "")
-          LINUX_SIG=$(find signatures -name "*.AppImage.tar.gz.sig" | head -1 | xargs cat 2>/dev/null || echo "")
+          # Read signature files
+          WIN_X64_SIG=$(find signatures -name "*Windows_x64-setup.exe.sig" | head -1 | xargs cat 2>/dev/null || echo "")
+          WIN_ARM64_SIG=$(find signatures -name "*Windows_arm64-setup.exe.sig" | head -1 | xargs cat 2>/dev/null || echo "")
+          MACOS_ARM64_SIG=$(find signatures -name "*macOS_aarch64.app.tar.gz.sig" | head -1 | xargs cat 2>/dev/null || echo "")
+          MACOS_X64_SIG=$(find signatures -name "*macOS_x64.app.tar.gz.sig" | head -1 | xargs cat 2>/dev/null || echo "")
+          LINUX_SIG=$(find signatures -name "*Linux_x64.AppImage.tar.gz.sig" | head -1 | xargs cat 2>/dev/null || echo "")
 
           # Build platforms JSON dynamically
           PLATFORMS="{"
 
           if [ -n "$WIN_X64_SIG" ]; then
-            PLATFORMS="$PLATFORMS\"windows-x86_64\":{\"signature\":\"$WIN_X64_SIG\",\"url\":\"https://github.com/$REPO/releases/download/v$VERSION/ZeroLimit_${VERSION}_x64-setup.exe\"},"
+            PLATFORMS="$PLATFORMS\"windows-x86_64\":{\"signature\":\"$WIN_X64_SIG\",\"url\":\"https://github.com/$REPO/releases/download/v$VERSION/ZeroLimit_${VERSION}_Windows_x64-setup.exe\"},"
           fi
 
           if [ -n "$WIN_ARM64_SIG" ]; then
-            PLATFORMS="$PLATFORMS\"windows-aarch64\":{\"signature\":\"$WIN_ARM64_SIG\",\"url\":\"https://github.com/$REPO/releases/download/v$VERSION/ZeroLimit_${VERSION}_arm64-setup.exe\"},"
+            PLATFORMS="$PLATFORMS\"windows-aarch64\":{\"signature\":\"$WIN_ARM64_SIG\",\"url\":\"https://github.com/$REPO/releases/download/v$VERSION/ZeroLimit_${VERSION}_Windows_arm64-setup.exe\"},"
           fi
 
           if [ -n "$MACOS_ARM64_SIG" ]; then
-            MACOS_ARM64_FILENAME=$(find signatures -path "*aarch64-apple*" -name "*.sig" | head -1 | xargs basename | sed 's/.sig$//')
-            PLATFORMS="$PLATFORMS\"darwin-aarch64\":{\"signature\":\"$MACOS_ARM64_SIG\",\"url\":\"https://github.com/$REPO/releases/download/v$VERSION/$MACOS_ARM64_FILENAME\"},"
+            PLATFORMS="$PLATFORMS\"darwin-aarch64\":{\"signature\":\"$MACOS_ARM64_SIG\",\"url\":\"https://github.com/$REPO/releases/download/v$VERSION/ZeroLimit_${VERSION}_macOS_aarch64.app.tar.gz\"},"
           fi
 
           if [ -n "$MACOS_X64_SIG" ]; then
-            MACOS_X64_FILENAME=$(find signatures -path "*x86_64-apple*" -name "*.sig" | head -1 | xargs basename | sed 's/.sig$//')
-            PLATFORMS="$PLATFORMS\"darwin-x86_64\":{\"signature\":\"$MACOS_X64_SIG\",\"url\":\"https://github.com/$REPO/releases/download/v$VERSION/$MACOS_X64_FILENAME\"},"
+            PLATFORMS="$PLATFORMS\"darwin-x86_64\":{\"signature\":\"$MACOS_X64_SIG\",\"url\":\"https://github.com/$REPO/releases/download/v$VERSION/ZeroLimit_${VERSION}_macOS_x64.app.tar.gz\"},"
           fi
 
           if [ -n "$LINUX_SIG" ]; then
-            LINUX_FILENAME=$(find signatures -name "*.AppImage.tar.gz.sig" | head -1 | xargs basename | sed 's/.sig$//')
-            PLATFORMS="$PLATFORMS\"linux-x86_64\":{\"signature\":\"$LINUX_SIG\",\"url\":\"https://github.com/$REPO/releases/download/v$VERSION/$LINUX_FILENAME\"},"
+            PLATFORMS="$PLATFORMS\"linux-x86_64\":{\"signature\":\"$LINUX_SIG\",\"url\":\"https://github.com/$REPO/releases/download/v$VERSION/ZeroLimit_${VERSION}_Linux_x64.AppImage.tar.gz\"},"
           fi
 
           # Remove trailing comma and close
