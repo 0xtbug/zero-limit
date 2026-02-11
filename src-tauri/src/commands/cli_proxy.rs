@@ -66,11 +66,10 @@ pub async fn stop_cli_proxy() -> CommandResult<()> {
         .map_err(|e| CommandError::General(e.to_string()))?;
 
     if let Some(ref mut child) = *guard {
-        let pid = child.id();
-
         // On Windows, use taskkill for reliable termination
         #[cfg(windows)]
         {
+            let pid = child.id();
             let _ = Command::new("taskkill")
                 .args(["/F", "/T", "/PID", &pid.to_string()])
                 .creation_flags(CREATE_NO_WINDOW)
@@ -100,6 +99,14 @@ pub async fn stop_cli_proxy() -> CommandResult<()> {
                     let _ = Command::new("taskkill")
                         .args(["/F", "/T", "/IM", name])
                         .creation_flags(CREATE_NO_WINDOW)
+                        .output();
+                }
+
+                #[cfg(not(windows))]
+                {
+                    use std::process::Command;
+                    let _ = Command::new("pkill")
+                        .args(["-f", name])
                         .output();
                 }
             }
