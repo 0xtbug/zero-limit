@@ -1,6 +1,6 @@
 {
   "name": "zero-limit",
-  "version": "1.0.9",
+  "version": "1.0.9-fix",
   "private": true,
   "type": "module",
   "scripts": {
