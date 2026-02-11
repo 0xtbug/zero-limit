@@ -61,3 +61,11 @@ export interface ApiError extends Error {
   details?: unknown;
   data?: unknown;
 }
+
+export interface RawApiCallResponse {
+  status_code?: number;
+  statusCode?: number;
+  header?: Record<string, string[]>;
+  headers?: Record<string, string[]>;
+  body?: unknown;
+}

@@ -1,11 +1,14 @@
 import { useEffect } from 'react'
-import { useAuthStore, useThemeStore, useCliProxyStore, useUpdateStore } from '@/stores'
+import { useAuthStore } from '@/features/auth/auth.store'
+import { useThemeStore } from '@/features/settings/theme.store'
+import { useCliProxyStore } from '@/features/settings/cliProxy.store'
+import { useUpdateStore } from '@/features/about/update.store'
 import { ProtectedRoute } from '@/router/ProtectedRoute'
 import { MainRoutes } from '@/router/MainRoutes'
-import { LoginPage } from '@/pages/LoginPage'
-import Default from './layouts/default'
+import { LoginPage } from '@/features/auth/LoginPage'
+import Default from './layouts/DefaultLayout'
 import { invoke } from '@tauri-apps/api/core'
-import { Toaster } from '@/components/ui/sonner'
+import { Toaster } from '@/shared/components/ui/sonner'
 
 function App() {
   const { isAuthenticated, restoreSession, connectionStatus } = useAuthStore()

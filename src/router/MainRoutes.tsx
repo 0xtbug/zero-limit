@@ -3,11 +3,11 @@
  */
 
 import { Navigate, useRoutes, type Location } from 'react-router-dom';
-import { DashboardPage } from '@/pages/DashboardPage';
-import { SettingsPage } from '@/pages/SettingsPage';
-import { ProvidersPage } from '@/pages/ProvidersPage';
-import { QuotaPage } from '@/pages/QuotaPage';
-import { AboutPage } from '@/pages/AboutPage';
+import { DashboardPage } from '@/features/dashboard/DashboardPage';
+import { SettingsPage } from '@/features/settings/SettingsPage';
+import { ProvidersPage } from '@/features/providers/ProvidersPage';
+import { QuotaPage } from '@/features/quota/QuotaPage';
+import { AboutPage } from '@/features/about/AboutPage';
 
 const mainRoutes = [
   { path: '/', element: <DashboardPage /> },

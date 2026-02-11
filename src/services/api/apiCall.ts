@@ -4,7 +4,7 @@
 
 import type { AxiosRequestConfig } from 'axios';
 import { apiClient } from './client';
-import type { ApiCallRequest, ApiCallResult } from '@/types';
+import type { ApiCallRequest, ApiCallResult, RawApiCallResponse } from '@/types';
 
 const normalizeBody = (input: unknown): { bodyText: string; body: unknown | null } => {
   if (input === undefined || input === null) {
@@ -58,7 +58,7 @@ export const apiCallApi = {
     payload: ApiCallRequest,
     config?: AxiosRequestConfig
   ): Promise<ApiCallResult> => {
-    const response = await apiClient.post('/api-call', payload, config);
+    const response = await apiClient.post<RawApiCallResponse>('/api-call', payload, config);
     const statusCode = Number(response?.status_code ?? response?.statusCode ?? 0);
     const header = (response?.header ?? response?.headers ?? {}) as Record<string, string[]>;
     const { bodyText, body } = normalizeBody(response?.body);

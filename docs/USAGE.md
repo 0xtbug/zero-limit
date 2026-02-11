@@ -10,6 +10,7 @@ Before using ZeroLimit, you need CLIProxyAPI running either **locally** or on a 
 > [!NOTE]
 > if you want to use kiro & github copilot support, you need to download [CLIProxyAPI Plus Version](https://github.com/router-for-me/CLIProxyAPIPlus/releases)
 
+### Option A: Local Setup
 1. Go to [CLIProxyAPI Releases](https://github.com/router-for-me/CLIProxyAPI/releases)
 2. Download `cli-proxy-api.exe` for Windows
 3. Extract to a folder (e.g., `C:\CLIProxyAPI\`)
