@@ -1,14 +1,10 @@
-/**
- * Axios API Client
- */
-
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import {
   BUILD_DATE_HEADER_KEYS,
   MANAGEMENT_API_PREFIX,
   REQUEST_TIMEOUT_MS,
   VERSION_HEADER_KEYS
-} from '@/utils/constants';
+} from '@/constants';
 import type { ApiClientConfig, ApiError } from '@/types';
 
 class ApiClient {
@@ -27,9 +23,6 @@ class ApiClient {
     this.setupInterceptors();
   }
 
-  /**
-   * Set API configuration
-   */
   setConfig(config: ApiClientConfig): void {
     this.apiBase = this.normalizeApiBase(config.apiBase);
     this.managementKey = config.managementKey;
@@ -41,19 +34,11 @@ class ApiClient {
     }
   }
 
-  /**
-   * Normalize API Base URL
-   */
   private normalizeApiBase(base: string): string {
     let normalized = base.trim();
-
-    // Remove trailing /v0/management
     normalized = normalized.replace(/\/?v0\/management\/?$/i, '');
-
-    // Remove trailing slashes
     normalized = normalized.replace(/\/+$/, '');
 
-    // Add protocol
     if (!/^https?:\/\//i.test(normalized)) {
       normalized = `http://${normalized}`;
     }
@@ -97,21 +82,14 @@ class ApiClient {
     return null;
   }
 
-  /**
-   * Setup request/response interceptors
-   */
   private setupInterceptors(): void {
-    // Request interceptor
     this.instance.interceptors.request.use(
       (config) => {
-        // Set baseURL
         config.baseURL = this.apiBase;
         if (config.url) {
-          // Normalize deprecated Gemini endpoint to the current path
           config.url = config.url.replace(/\/generative-language-api-key\b/g, '/gemini-api-key');
         }
 
-        // Add auth header
         if (this.managementKey) {
           config.headers.Authorization = `Bearer ${this.managementKey}`;
         }
@@ -121,14 +99,12 @@ class ApiClient {
       (error) => Promise.reject(this.handleError(error))
     );
 
-    // Response interceptor
     this.instance.interceptors.response.use(
       (response) => {
         const headers = response.headers as Record<string, string | undefined>;
         const version = this.readHeader(headers, VERSION_HEADER_KEYS);
         const buildDate = this.readHeader(headers, BUILD_DATE_HEADER_KEYS);
 
-        // Dispatch version update event (handled by store)
         if (version || buildDate) {
           window.dispatchEvent(
             new CustomEvent('server-version-update', {
@@ -143,9 +119,6 @@ class ApiClient {
     );
   }
 
-  /**
-   * Error handling
-   */
   private handleError(error: unknown): ApiError {
     if (axios.isAxiosError(error)) {
       const responseData = error.response?.data as Record<string, unknown> | undefined;
@@ -157,7 +130,6 @@ class ApiClient {
       apiError.details = responseData;
       apiError.data = responseData;
 
-      // 401 Unauthorized - trigger logout event
       if (error.response?.status === 401) {
         window.dispatchEvent(new Event('unauthorized'));
       }
@@ -170,52 +142,33 @@ class ApiClient {
     return fallback;
   }
 
-  /**
-   * GET request
-   */
   async get<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T> {
     const response = await this.instance.get<T>(url, config);
     return response.data;
   }
 
-  /**
-   * POST request
-   */
   async post<T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
     const response = await this.instance.post<T>(url, data, config);
     return response.data;
   }
 
-  /**
-   * DELETE request
-   */
   async delete<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T> {
     const response = await this.instance.delete<T>(url, config);
     return response.data;
   }
 
-  /**
-   * PUT request
-   */
   async put<T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
     const response = await this.instance.put<T>(url, data, config);
     return response.data;
   }
 
-  /**
-   * Get raw response (for downloads, etc.)
-   */
   async getRaw(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse> {
     return this.instance.get(url, config);
   }
 
-  /**
-   * Raw axios request (for downloads, etc.)
-   */
   async requestRaw(config: AxiosRequestConfig): Promise<AxiosResponse> {
     return this.instance.request(config);
   }
 }
 
-// Export singleton
 export const apiClient = new ApiClient();

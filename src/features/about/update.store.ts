@@ -1,8 +1,3 @@
-/**
- * Update Store
- * Manages app update state and actions
- */
-
 import { create } from 'zustand';
 import { check, Update } from '@tauri-apps/plugin-updater';
 import { relaunch } from '@tauri-apps/plugin-process';
@@ -107,7 +102,6 @@ export const useUpdateStore = create<UpdateState & UpdateActions>((set, get) => 
         }
       });
 
-      // Relaunch the app
       await relaunch();
     } catch (error) {
       set({

@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useAuthStore } from '@/stores';
+import { useAuthStore } from '@/features/auth/auth.store';
 import { authFilesApi } from '@/services/api/auth.service';
 import { quotaApi } from '@/services/api/quota.service';
 import type { AuthFile, FileQuota, ProviderSection } from '@/types';
-import type { ProviderFilterItem } from '@/components/quota/ProviderFilter';
+import type { ProviderFilterItem } from '@/features/quota/components/ProviderFilter';
 import { resolveCodexChatgptAccountId, resolveCodexPlanType, resolveGeminiCliProjectId } from '@/shared/utils/quota.helpers';
 
 function getProviderType(file: AuthFile): 'antigravity' | 'codex' | 'gemini-cli' | 'kiro' | 'copilot' | 'unknown' {

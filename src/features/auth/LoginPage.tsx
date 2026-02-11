@@ -4,11 +4,12 @@
 
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useAuthStore, useCliProxyStore } from '@/stores';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
+import { useAuthStore } from '@/features/auth/auth.store';
+import { useCliProxyStore } from '@/features/settings/cliProxy.store';
+import { Button } from '@/shared/components/ui/button';
+import { Input } from '@/shared/components/ui/input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card';
+import { Label } from '@/shared/components/ui/label';
 import { Loader2, Server, Key, FolderOpen, Play, Square, CheckCircle2 } from 'lucide-react';
 
 export function LoginPage() {

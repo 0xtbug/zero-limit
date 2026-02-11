@@ -3,12 +3,12 @@
  */
 
 import { useTranslation } from 'react-i18next';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { useUpdateStore } from '@/stores';
-import { useAppVersion } from '@/hooks';
+import { Card } from '@/shared/components/ui/card';
+import { Badge } from '@/shared/components/ui/badge';
+import { Button } from '@/shared/components/ui/button';
+import { Progress } from '@/shared/components/ui/progress';
+import { useUpdateStore } from '@/features/about/update.store';
+import { useAppVersion } from '@/shared/hooks';
 import { User, Github, ExternalLink, RefreshCw, Download, Loader2, CheckCircle2 } from 'lucide-react';
 import { open } from '@tauri-apps/plugin-shell';
 

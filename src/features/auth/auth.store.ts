@@ -1,21 +1,15 @@
-/**
- * Authentication State Store
- */
-
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { AuthState, LoginCredentials, ConnectionStatus } from '@/types';
-import { STORAGE_KEY_AUTH } from '@/utils/constants';
+import { STORAGE_KEY_AUTH } from '@/constants';
 import { secureStorage } from '@/services/storage/secureStorage';
 import { apiClient } from '@/services/api/client';
-import { useConfigStore } from './useConfigStore';
-import { detectApiBaseFromLocation, normalizeApiBase } from '@/utils/connection';
+import { useConfigStore } from '@/features/settings/config.store';
+import { detectApiBaseFromLocation, normalizeApiBase } from '@/shared/utils/connection';
 
 interface AuthStoreState extends AuthState {
   connectionStatus: ConnectionStatus;
   connectionError: string | null;
-
-  // Actions
   login: (credentials: LoginCredentials) => Promise<void>;
   logout: () => void;
   checkAuth: () => Promise<boolean>;
@@ -29,7 +23,6 @@ let restoreSessionPromise: Promise<boolean> | null = null;
 export const useAuthStore = create<AuthStoreState>()(
   persist(
     (set, get) => ({
-      // Initial state
       isAuthenticated: false,
       apiBase: '',
       managementKey: '',
@@ -39,7 +32,6 @@ export const useAuthStore = create<AuthStoreState>()(
       connectionStatus: 'disconnected',
       connectionError: null,
 
-      // Restore session and auto-login
       restoreSession: () => {
         if (restoreSessionPromise) return restoreSessionPromise;
 
@@ -84,7 +76,6 @@ export const useAuthStore = create<AuthStoreState>()(
         return restoreSessionPromise;
       },
 
-      // Login
       login: async (credentials) => {
         const apiBase = normalizeApiBase(credentials.apiBase);
         const managementKey = credentials.managementKey.trim();
@@ -92,14 +83,9 @@ export const useAuthStore = create<AuthStoreState>()(
 
         try {
           set({ connectionStatus: 'connecting' });
-
-          // Configure API client
           apiClient.setConfig({ apiBase, managementKey });
+          await useConfigStore.getState().fetchConfig(true);
 
-          // Test connection by fetching config
-          await useConfigStore.getState().fetchConfig(undefined, true);
-
-          // Login successful
           set({
             isAuthenticated: true,
             apiBase,
@@ -123,7 +109,6 @@ export const useAuthStore = create<AuthStoreState>()(
         }
       },
 
-      // Logout
       logout: () => {
         restoreSessionPromise = null;
         useConfigStore.getState().clearCache();
@@ -139,7 +124,6 @@ export const useAuthStore = create<AuthStoreState>()(
         localStorage.removeItem('isLoggedIn');
       },
 
-      // Check authentication status
       checkAuth: async () => {
         const { managementKey, apiBase } = get();
 
@@ -164,12 +148,10 @@ export const useAuthStore = create<AuthStoreState>()(
         }
       },
 
-      // Update server version
       updateServerVersion: (version, buildDate) => {
         set({ serverVersion: version || null, serverBuildDate: buildDate || null });
       },
 
-      // Update connection status
       updateConnectionStatus: (status, error = null) => {
         set({
           connectionStatus: status,
@@ -202,7 +184,6 @@ export const useAuthStore = create<AuthStoreState>()(
   )
 );
 
-// Listen for global events
 if (typeof window !== 'undefined') {
   window.addEventListener('unauthorized', () => {
     useAuthStore.getState().logout();

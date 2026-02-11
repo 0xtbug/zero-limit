@@ -4,8 +4,8 @@
  */
 
 import { useEffect } from 'react';
+import { REFRESH_EVENT } from '@/constants';
 
-const REFRESH_EVENT = 'app://header-refresh';
 
 export function useHeaderRefresh(callback: () => void): void {
   useEffect(() => {

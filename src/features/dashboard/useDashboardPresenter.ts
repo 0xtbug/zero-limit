@@ -1,5 +1,8 @@
 import { useEffect, useCallback, useState, useMemo } from 'react';
-import { useAuthStore, useConfigStore, useUsageStore, useCliProxyStore } from '@/stores';
+import { useAuthStore } from '@/features/auth/auth.store';
+import { useConfigStore } from '@/features/settings/config.store';
+import { useUsageStore } from '@/features/dashboard/usage.store';
+import { useCliProxyStore } from '@/features/settings/cliProxy.store';
 import { useHeaderRefresh } from '@/shared/hooks';
 import { authFilesApi } from '@/services/api/auth.service';
 import type { ChartConfig } from '@/shared/components/ui/chart';

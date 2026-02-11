@@ -1,24 +1,19 @@
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/shared/components/ui/card';
+import { Badge } from '@/shared/components/ui/badge';
 import { RefreshCw, User, Clock, Search, Folder, List, Ban } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/shared/components/ui/button';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
+} from '@/shared/components/ui/dialog'
 import { useMemo } from 'react';
-import { maskEmail, maskFolder } from '@/utils/privacy';
+import { maskEmail, maskFolder } from '@/shared/utils/privacy';
+import type { QuotaModel } from '@/types';
 
-interface QuotaItem {
-  name: string;
-  percentage: number;
-  resetTime?: string;
-  displayValue?: string;
-}
 
 interface ProviderQuotaCardProps {
   fileId: string;
@@ -27,7 +22,7 @@ interface ProviderQuotaCardProps {
   email?: string;
   loading: boolean;
   error?: string;
-  items: QuotaItem[];
+  items: QuotaModel[];
   plan?: string;
   onRefresh: () => void;
   isPrivacyMode: boolean;
@@ -46,13 +41,11 @@ export function ProviderQuotaCard({
 }: ProviderQuotaCardProps) {
   const { t } = useTranslation();
 
-  // Apply masking if privacy mode is on
   const displayEmail = isPrivacyMode ? maskEmail(email || '') : (email || '********@*****.com');
   const displayFilename = isPrivacyMode ? maskFolder(filename) : filename;
 
-  // Group items logic
   const groupedItems = useMemo(() => {
-    const groups: Record<string, QuotaItem[]> = {};
+    const groups: Record<string, QuotaModel[]> = {};
     const isAntigravity = provider.toLowerCase().includes('antigravity');
 
     items.forEach(item => {
@@ -64,12 +57,10 @@ export function ProviderQuotaCard({
       else if (name.includes('gemini') && name.includes('flash')) groupName = 'Gemini Flash';
       else if (name.includes('gemini')) groupName = 'Gemini';
       else if (!isAntigravity) {
-        // Only show GPT groups for non-Antigravity providers
         if (name.includes('gpt-4')) groupName = 'GPT-4';
         else if (name.includes('gpt-3.5')) groupName = 'GPT-3.5';
         else if (name.includes('gpt') || name.includes('o1')) groupName = 'GPT';
       }
-      // For Antigravity, if it's not Claude/Gemini, put in 'Other'
 
       if (!groups[groupName]) groups[groupName] = [];
       groups[groupName].push(item);
@@ -80,7 +71,6 @@ export function ProviderQuotaCard({
       const avg = Math.round(total / groupItems.length);
       const resetTime = groupItems.find(i => i.resetTime)?.resetTime;
 
-      // Determine icon based on group name
       let icon: string | undefined;
       const lowerName = name.toLowerCase();
       const lowerProvider = provider.toLowerCase();
@@ -92,7 +82,6 @@ export function ProviderQuotaCard({
       } else if (lowerName.includes('gpt') || lowerName.includes('o1')) {
         icon = '/openai/openai.png';
       } else if (lowerName === 'other' || !icon) {
-        // For "Other" group, use provider-specific icon
         if (lowerProvider.includes('antigravity')) {
           icon = '/openai/openai.png';
         } else if (lowerProvider.includes('codex')) {
@@ -100,18 +89,21 @@ export function ProviderQuotaCard({
         } else if (lowerProvider.includes('kiro')) {
           icon = '/kiro/kiro.png';
         } else if (lowerProvider.includes('copilot') || lowerProvider.includes('github')) {
-          icon = '/github/github.png';
+          icon = '/copilot/copilot.png';
         } else {
           icon = '/openai/openai.png'; // Default fallback
         }
       }
+
+      const needsInvert = icon === '/copilot/copilot.png';
 
       return {
         name,
         percentage: avg,
         items: groupItems,
         resetTime,
-        icon
+        icon,
+        needsInvert
       };
     }).sort((a, b) => a.name.localeCompare(b.name));
   }, [items, provider]);
@@ -181,7 +173,7 @@ export function ProviderQuotaCard({
                                 <div key={groupIdx} className="space-y-3">
                                     <div className="flex items-center gap-2 border-b pb-2">
                                         {group.icon ? (
-                                            <img src={group.icon} className="h-5 w-5 opacity-80" alt={group.name} />
+                                            <img src={group.icon} className={`h-5 w-5 opacity-80 ${group.needsInvert ? 'dark:invert' : ''}`} alt={group.name} />
                                         ) : (
                                             <div className="h-5 w-5" />
                                         )}
@@ -256,7 +248,7 @@ export function ProviderQuotaCard({
                         <div className="flex items-center justify-between text-sm">
                             <div className="flex items-center gap-2">
                                 {group.icon ? (
-                                    <img src={group.icon} className="h-4 w-4 opacity-80" alt={group.name} />
+                                    <img src={group.icon} className={`h-4 w-4 opacity-80 ${group.needsInvert ? 'dark:invert' : ''}`} alt={group.name} />
                                 ) : (
                                     <div className="h-4 w-4" />
                                 )}

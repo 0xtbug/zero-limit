@@ -2,7 +2,7 @@
  * Connection Utilities
  */
 
-import { MANAGEMENT_API_PREFIX } from './constants';
+import { MANAGEMENT_API_PREFIX } from '@/constants';
 
 /**
  * Normalize an API base URL by:

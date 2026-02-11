@@ -4,14 +4,8 @@
 
 import { apiClient } from './client';
 import type { OAuthProvider, OAuthStartResponse, OAuthCallbackResponse, OAuthStatusResponse } from '@/types';
+import { WEBUI_SUPPORTED, CALLBACK_PROVIDER_MAP, AUTH_URL_PROVIDER_MAP } from '@/constants';
 
-const WEBUI_SUPPORTED: OAuthProvider[] = ['codex', 'anthropic', 'antigravity', 'gemini-cli', 'kiro'];
-const CALLBACK_PROVIDER_MAP: Partial<Record<OAuthProvider, string>> = {
-  'gemini-cli': 'gemini'
-};
-const AUTH_URL_PROVIDER_MAP: Partial<Record<OAuthProvider, string>> = {
-  'copilot': 'github'
-};
 
 export const oauthApi = {
   startAuth: (provider: OAuthProvider, options?: { projectId?: string }) => {

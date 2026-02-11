@@ -1,15 +1,8 @@
-/**
- * CLI Proxy State Store
- *
- * Manages the CLI Proxy executable path and server status
- */
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { open } from '@tauri-apps/plugin-dialog';
 import { invoke } from '@tauri-apps/api/core';
-
-const STORAGE_KEY = 'cli-proxy-config';
+import { STORAGE_KEY_CLI_PROXY } from '@/constants';
 
 interface CliProxyState {
   exePath: string | null;
@@ -18,7 +11,6 @@ interface CliProxyState {
   autoStart: boolean;
   runInBackground: boolean;
   serverPid: number | null;
-
   setExePath: (path: string | null) => void;
   setAutoStart: (autoStart: boolean) => void;
   setRunInBackground: (runInBackground: boolean) => void;
@@ -45,7 +37,6 @@ export const useCliProxyStore = create<CliProxyState>()(
 
       setRunInBackground: (runInBackground) => {
         set({ runInBackground });
-        // Sync with Rust backend
         invoke('set_run_in_background', { enabled: runInBackground }).catch(console.error);
       },
 
@@ -79,12 +70,10 @@ export const useCliProxyStore = create<CliProxyState>()(
 
         try {
           const pid = await invoke<number>('start_cli_proxy', { exePath });
-
           set({
             isServerRunning: true,
             serverPid: pid
           });
-
           return true;
         } catch (err) {
           console.error('Failed to start server:', err);
@@ -119,11 +108,8 @@ export const useCliProxyStore = create<CliProxyState>()(
 
       checkApiHealth: async (apiBase?: string) => {
         try {
-          // Default to localhost if no apiBase provided
           let baseUrl = apiBase || 'http://localhost:8317';
-          // Remove trailing slash and /v0/management paths
           baseUrl = baseUrl.replace(/\/?v0\/management\/?$/i, '').replace(/\/+$/, '');
-          // Remove protocol if missing, add http
           if (!/^https?:\/\//i.test(baseUrl)) {
             baseUrl = `http://${baseUrl}`;
           }
@@ -136,7 +122,6 @@ export const useCliProxyStore = create<CliProxyState>()(
 
           if (response.ok) {
             const data = await response.json();
-            // Check for CLI Proxy API signature
             const isHealthy = data?.message === 'CLI Proxy API Server' || Array.isArray(data?.endpoints);
             set({ isApiHealthy: isHealthy });
             return isHealthy;
@@ -151,7 +136,7 @@ export const useCliProxyStore = create<CliProxyState>()(
       },
     }),
     {
-      name: STORAGE_KEY,
+      name: STORAGE_KEY_CLI_PROXY,
       partialize: (state) => ({
         exePath: state.exePath,
         autoStart: state.autoStart,

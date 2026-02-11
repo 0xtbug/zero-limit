@@ -3,7 +3,7 @@
  */
 
 import { type ReactNode } from 'react';
-import { useAuthStore } from '@/stores';
+import { useAuthStore } from '@/features/auth/auth.store';
 
 interface ProtectedRouteProps {
   children: ReactNode;

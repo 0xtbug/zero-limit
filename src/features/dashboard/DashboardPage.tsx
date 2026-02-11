@@ -1,27 +1,18 @@
-/**
- * Dashboard Page
- */
-
-import { useEffect, useCallback, useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useAuthStore, useConfigStore, useUsageStore, useCliProxyStore } from '@/stores';
-import { useHeaderRefresh } from '@/hooks';
-import { authFilesApi } from '@/services/api/authFiles';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
+import { Button } from '@/shared/components/ui/button';
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-  type ChartConfig
-} from '@/components/ui/chart';
+} from '@/shared/components/ui/chart';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from '@/shared/components/ui/select';
 import {
   Table,
   TableBody,
@@ -29,371 +20,43 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
+} from '@/shared/components/ui/table';
+import { ScrollArea, ScrollBar } from '@/shared/components/ui/scroll-area'
 import { Activity, Users, TrendingDown, BarChart3, Coins, ChevronRight, ChevronDown, Loader2, RefreshCw } from 'lucide-react';
-import {
-
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid
-} from 'recharts';
-
-type TimeGrouping = 'hour' | 'day';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid } from 'recharts';
+import { useDashboardPresenter } from '@/features/dashboard/useDashboardPresenter';
 
 export function DashboardPage() {
   const { t } = useTranslation();
-  const { connectionStatus, checkAuth, updateConnectionStatus, apiBase } = useAuthStore();
-  const { fetchConfig } = useConfigStore();
-  const { usage, loading: usageLoading, fetchUsage } = useUsageStore();
-  const { isApiHealthy, checkApiHealth } = useCliProxyStore();
-
-  const [activeAccountsCount, setActiveAccountsCount] = useState<number>(0);
-  const [requestTimeGrouping, setRequestTimeGrouping] = useState<TimeGrouping>('day');
-  const [tokenTimeGrouping, setTokenTimeGrouping] = useState<TimeGrouping>('day');
-  const [expandedApis, setExpandedApis] = useState<Set<string>>(new Set());
-
-
-  // Multi-line comparison state
-  const [comparisonLines, setComparisonLines] = useState<{
-    id: string;
-    model: string;
-    source: string;
-    color: string;
-  }[]>([
-    { id: 'line-1', model: 'all', source: 'all', color: 'var(--chart-1)' }
-  ]);
-
-  const CHART_COLORS = [
-    'var(--chart-1)',
-    'var(--chart-2)',
-    'var(--chart-3)',
-    'var(--chart-4)',
-    'var(--chart-5)',
-  ];
-
-  const addLine = () => {
-    if (comparisonLines.length >= 9) return;
-    const newId = `line-${Date.now()}`;
-    const color = CHART_COLORS[comparisonLines.length % CHART_COLORS.length];
-    setComparisonLines([...comparisonLines, { id: newId, model: 'all', source: 'all', color }]);
-  };
-
-  const removeLine = (id: string) => {
-    if (comparisonLines.length <= 1) return;
-    setComparisonLines(comparisonLines.filter(l => l.id !== id));
-  };
-
-  const updateLine = (id: string, field: 'model' | 'source', value: string) => {
-    setComparisonLines(comparisonLines.map(l => l.id === id ? { ...l, [field]: value } : l));
-  };
-
-  const resetLines = () => {
-    setComparisonLines([
-      { id: 'line-1', model: 'all', source: 'all', color: 'var(--chart-1)' }
-    ]);
-  };
-
-  const loadData = useCallback(async () => {
-    try {
-      await fetchConfig();
-      const response = await authFilesApi.list();
-      const filesList = response?.files ?? [];
-      setActiveAccountsCount(filesList.length);
-      await fetchUsage();
-    } catch {
-      // Error handled by store/api
-    }
-  }, [fetchConfig, fetchUsage]);
-
-  // Check API health on mount
-  useEffect(() => {
-    checkApiHealth(apiBase);
-  }, [checkApiHealth, apiBase]);
-
-  // Re-check auth when API health changes
-  useEffect(() => {
-    if (isApiHealthy) {
-      checkAuth();
-    } else {
-      updateConnectionStatus('disconnected');
-    }
-  }, [isApiHealthy, checkAuth, updateConnectionStatus]);
-
-  useEffect(() => {
-    if (connectionStatus === 'connected') {
-      loadData();
-    }
-  }, [connectionStatus, loadData]);
-
-  useHeaderRefresh(loadData);
-
-  const toggleApi = (apiName: string) => {
-    const newExpanded = new Set(expandedApis);
-    if (newExpanded.has(apiName)) {
-      newExpanded.delete(apiName);
-    } else {
-      newExpanded.add(apiName);
-    }
-    setExpandedApis(newExpanded);
-  };
-
-  // Calculate totals and extract model stats
-  const { modelStats, trendsByDay, trendsByHour, tokenBreakdown, apiStats, availableModels, availableSources } = useMemo(() => {
-    if (!usage?.usage) {
-      return {
-        modelStats: [],
-        trendsByDay: [],
-        trendsByHour: [],
-        tokenBreakdown: { cached: 0, reasoning: 0 },
-        apiStats: [],
-        availableModels: [],
-        availableSources: []
-      };
-    }
-
-    // Extract all models from all APIs
-    const models: { name: string; requests: number; tokens: number; failed: number }[] = [];
-    const apis = usage.usage.apis || {};
-    const apiList: {
-      name: string;
-      requests: number;
-      tokens: number;
-      models: { name: string; requests: number; tokens: number }[]
-    }[] = [];
-
-    // Token breakdown aggregation
-    let cachedTokens = 0;
-    let reasoningTokens = 0;
-
-    // Trend data aggregation
-    const dayTrends: Record<string, {
-      date: string;
-      requests: number;
-      tokens: number;
-      models: Record<string, { requests: number; tokens: number }>;
-      sources: Record<string, { requests: number; tokens: number; models: Record<string, { requests: number; tokens: number }> }>
-    }> = {};
-    const hourTrends: Record<string, {
-      date: string;
-      requests: number;
-      tokens: number;
-      models: Record<string, { requests: number; tokens: number }>;
-      sources: Record<string, { requests: number; tokens: number; models: Record<string, { requests: number; tokens: number }> }>
-    }> = {};
-
-    for (const apiKey of Object.keys(apis)) {
-      const api = apis[apiKey];
-      const apiModels = api.models || {};
-      const currentApiModels: { name: string; requests: number; tokens: number }[] = [];
-
-      for (const modelName of Object.keys(apiModels)) {
-        const model = apiModels[modelName];
-        const details = model.details || [];
-        let modelFailed = 0;
-
-        currentApiModels.push({
-          name: modelName,
-          requests: model.total_requests || 0,
-          tokens: model.total_tokens || 0
-        });
-
-        for (const detail of details) {
-          // Aggregate token types
-          if (detail.tokens) {
-            cachedTokens += detail.tokens.cached_tokens || 0;
-            reasoningTokens += detail.tokens.reasoning_tokens || 0;
-          }
-
-          // Aggregate by date/hour for trends
-          if (detail.timestamp) {
-            const dateObj = new Date(detail.timestamp);
-
-            // Day key: YYYY-MM-DD
-            const dayKey = detail.timestamp.split('T')[0];
-
-            // Hour key: YYYY-MM-DD HH:00
-            // We construct it manually to ensure consistent formatting
-            const pad = (n: number) => n.toString().padStart(2, '0');
-            const hourKey = `${dateObj.getFullYear()}-${pad(dateObj.getMonth() + 1)}-${pad(dateObj.getDate())} ${pad(dateObj.getHours())}:00`;
-
-            // Accumulate day trends with model and source tracking
-            if (!dayTrends[dayKey]) dayTrends[dayKey] = { date: dayKey, requests: 0, tokens: 0, models: {}, sources: {} };
-            dayTrends[dayKey].requests += 1;
-            dayTrends[dayKey].tokens += detail.tokens?.total_tokens || 0;
-
-            // Track by model
-            if (!dayTrends[dayKey].models[modelName]) dayTrends[dayKey].models[modelName] = { requests: 0, tokens: 0 };
-            dayTrends[dayKey].models[modelName].requests += 1;
-            dayTrends[dayKey].models[modelName].tokens += detail.tokens?.total_tokens || 0;
-
-            // Track by source (email)
-            const source = detail.source || 'unknown';
-            if (!dayTrends[dayKey].sources[source]) dayTrends[dayKey].sources[source] = { requests: 0, tokens: 0, models: {} };
-            dayTrends[dayKey].sources[source].requests += 1;
-            dayTrends[dayKey].sources[source].tokens += detail.tokens?.total_tokens || 0;
-
-            // Track by source + model
-            if (!dayTrends[dayKey].sources[source].models[modelName]) dayTrends[dayKey].sources[source].models[modelName] = { requests: 0, tokens: 0 };
-            dayTrends[dayKey].sources[source].models[modelName].requests += 1;
-            dayTrends[dayKey].sources[source].models[modelName].tokens += detail.tokens?.total_tokens || 0;
-
-            // Accumulate hour trends with model and source tracking
-            if (!hourTrends[hourKey]) hourTrends[hourKey] = { date: hourKey, requests: 0, tokens: 0, models: {}, sources: {} };
-            hourTrends[hourKey].requests += 1;
-            hourTrends[hourKey].tokens += detail.tokens?.total_tokens || 0;
-
-            // Track by model
-            if (!hourTrends[hourKey].models[modelName]) hourTrends[hourKey].models[modelName] = { requests: 0, tokens: 0 };
-            hourTrends[hourKey].models[modelName].requests += 1;
-            hourTrends[hourKey].models[modelName].tokens += detail.tokens?.total_tokens || 0;
-
-            // Track by source (email)
-            if (!hourTrends[hourKey].sources[source]) hourTrends[hourKey].sources[source] = { requests: 0, tokens: 0, models: {} };
-            hourTrends[hourKey].sources[source].requests += 1;
-            hourTrends[hourKey].sources[source].tokens += detail.tokens?.total_tokens || 0;
-
-            // Track by source + model
-            if (!hourTrends[hourKey].sources[source].models[modelName]) hourTrends[hourKey].sources[source].models[modelName] = { requests: 0, tokens: 0 };
-            hourTrends[hourKey].sources[source].models[modelName].requests += 1;
-            hourTrends[hourKey].sources[source].models[modelName].tokens += detail.tokens?.total_tokens || 0;
-          }
-
-          if (detail.failed) {
-            modelFailed += 1;
-          }
-        }
-
-        models.push({
-          name: modelName,
-          requests: model.total_requests || 0,
-          tokens: model.total_tokens || 0,
-          failed: modelFailed
-        });
-      }
-
-      // Sort API models by requests
-      currentApiModels.sort((a, b) => b.requests - a.requests);
-
-      apiList.push({
-        name: apiKey,
-        requests: api.total_requests || 0,
-        tokens: api.total_tokens || 0,
-        models: currentApiModels
-      });
-    }
-
-    // Sort models by requests descending
-    models.sort((a, b) => b.requests - a.requests);
-
-    // Convert trends to array and sort by date
-    const sortedDayTrends = Object.values(dayTrends).sort((a, b) => a.date.localeCompare(b.date));
-    const sortedHourTrends = Object.values(hourTrends).sort((a, b) => a.date.localeCompare(b.date));
-
-    // Extract unique model names
-    const availableModels = Array.from(new Set(models.map(m => m.name))).sort();
-
-    // Extract unique sources (emails) from all details
-    const sources = new Set<string>();
-    for (const apiKey of Object.keys(apis)) {
-      const apiModels = apis[apiKey].models || {};
-      for (const modelName of Object.keys(apiModels)) {
-        const details = apiModels[modelName].details || [];
-        for (const detail of details) {
-          if (detail.source) {
-            sources.add(detail.source);
-          }
-        }
-      }
-    }
-    const availableSources = Array.from(sources).sort();
-
-    return {
-      modelStats: models,
-      trendsByDay: sortedDayTrends,
-      trendsByHour: sortedHourTrends,
-      tokenBreakdown: { cached: cachedTokens, reasoning: reasoningTokens },
-      apiStats: apiList,
-      availableModels,
-      availableSources
-    };
-  }, [usage]);
-
-  // Format large numbers
-  const formatNumber = (num: number) => {
-    if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(2)}M`;
-    if (num >= 1_000) return `${(num / 1_000).toFixed(1)}K`;
-    return num.toString();
-  };
-
-  // Format number for chart axis
-  const formatAxisNumber = (num: number) => {
-    if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(1)}M`;
-    if (num >= 1_000) return `${Math.round(num / 1_000)}K`;
-    return num.toString();
-  };
-
-  // Mask API name for privacy
-  const maskApiName = (name: string) => {
-    if (name.length <= 4) return name;
-    return name.substring(0, 2) + '*'.repeat(Math.min(6, name.length - 4)) + name.substring(name.length - 2);
-  };
-
-  const getComparisonData = (type: 'requests' | 'tokens') => {
-    const grouping = type === 'requests' ? requestTimeGrouping : tokenTimeGrouping;
-    const trends = grouping === 'hour' ? trendsByHour : trendsByDay;
-
-    return trends.map(trend => {
-      const dataPoint: any = { date: trend.date };
-
-      comparisonLines.forEach(line => {
-        let value = 0;
-
-        if (line.model === 'all' && line.source === 'all') {
-             value = type === 'requests' ? trend.requests : trend.tokens;
-        } else if (line.model === 'all' && line.source !== 'all') {
-             const sourceData = trend.sources?.[line.source];
-             value = sourceData ? (type === 'requests' ? sourceData.requests : sourceData.tokens) : 0;
-        } else if (line.model !== 'all' && line.source === 'all') {
-             const modelData = trend.models?.[line.model];
-             value = modelData ? (type === 'requests' ? modelData.requests : modelData.tokens) : 0;
-        } else {
-             // Both active
-             const sourceData = trend.sources?.[line.source];
-             if (sourceData && sourceData.models && sourceData.models[line.model]) {
-                 value = type === 'requests' ? sourceData.models[line.model].requests : sourceData.models[line.model].tokens;
-             }
-        }
-
-        dataPoint[line.id] = value;
-      });
-
-      return dataPoint;
-    });
-  };
-
-  const chartConfig = useMemo(() => {
-    const config: ChartConfig = {};
-    comparisonLines.forEach(line => {
-      let label = '';
-      const sourceLabel = maskApiName(line.source);
-
-      if (line.model === 'all' && line.source === 'all') label = t('usageStats.allActivity', 'All Activity');
-      else if (line.model === 'all') label = sourceLabel;
-      else if (line.source === 'all') label = line.model;
-      else label = `${line.model} • ${sourceLabel}`;
-
-      config[line.id] = {
-        label: label,
-        color: line.color,
-      };
-    });
-    return config;
-  }, [comparisonLines]);
-
-
+  const {
+    connectionStatus,
+    usageLoading,
+    usage,
+    activeAccountsCount,
+    loadData,
+    modelStats,
+    tokenBreakdown,
+    apiStats,
+    availableModels,
+    availableSources,
+    isUsageStatsEnabled,
+    requestTimeGrouping,
+    setRequestTimeGrouping,
+    tokenTimeGrouping,
+    setTokenTimeGrouping,
+    expandedApis,
+    toggleApi,
+    comparisonLines,
+    addLine,
+    removeLine,
+    updateLine,
+    resetLines,
+    getComparisonData,
+    chartConfig,
+    formatNumber,
+    formatAxisNumber,
+    maskApiName,
+  } = useDashboardPresenter();
 
   return (
     <div className="space-y-6 animate-fade-in p-2">
@@ -486,7 +149,7 @@ export function DashboardPage() {
           <h2 className="text-2xl font-bold tracking-tight">{t('usageStats.title')}</h2>
 
           {/* Check if usage statistics is disabled in config */}
-          {Boolean(useConfigStore.getState().config?.['usage-statistics-enabled']) === false ? (
+          {!isUsageStatsEnabled ? (
                  <Card>
                    <CardContent className="flex flex-col items-center justify-center py-8 gap-4">
                      <BarChart3 className="h-12 w-12 text-muted-foreground/50" />

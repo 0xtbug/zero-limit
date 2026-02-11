@@ -2,8 +2,8 @@
  * Compact Quota Card for Grid View
  */
 
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card } from '@/shared/components/ui/card';
+import { Badge } from '@/shared/components/ui/badge';
 import { Clock, RefreshCw, Eye, List, ChevronDown, Ban } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import {
@@ -12,14 +12,10 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { maskEmail } from '@/utils/privacy';
+} from '@/shared/components/ui/dialog'
+import { maskEmail } from '@/shared/utils/privacy';
+import type { QuotaModel } from '@/types';
 
-interface QuotaItem {
-  name: string;
-  percentage: number;
-  resetTime?: string;
-}
 
 interface CompactQuotaCardProps {
   fileId: string;
@@ -28,7 +24,7 @@ interface CompactQuotaCardProps {
   email?: string;
   loading: boolean;
   error?: string;
-  items: QuotaItem[];
+  items: QuotaModel[];
   plan?: string;
   isCurrent?: boolean;
   onRefresh: () => void;
@@ -54,7 +50,7 @@ export function CompactQuotaCard({
 
   // Group items by model type (for Antigravity) or show as-is (for Codex limits)
   const groupedItems = useMemo(() => {
-    const groups: Record<string, QuotaItem[]> = {};
+    const groups: Record<string, QuotaModel[]> = {};
 
     items.forEach(item => {
       const name = item.name.toLowerCase();

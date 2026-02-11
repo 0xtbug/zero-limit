@@ -11,7 +11,7 @@ import ja from './locales/ja.json';
 import vi from './locales/vi.json';
 import th from './locales/th.json';
 import ko from './locales/ko.json';
-import { getInitialLanguage } from '@/utils/language';
+import { getInitialLanguage } from '@/shared/utils/language';
 
 i18n.use(initReactI18next).init({
   resources: {

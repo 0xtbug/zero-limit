@@ -1,11 +1,7 @@
-/**
- * Configuration State Store
- */
-
 import { create } from 'zustand';
-import { configApi } from '@/services/api/config';
+import { configApi } from '@/services/api/config.service';
 import type { Config } from '@/types';
-import { CACHE_EXPIRY_MS } from '@/utils/constants';
+import { CACHE_EXPIRY_MS } from '@/constants';
 
 interface ConfigState {
   config: Config | null;
@@ -13,8 +9,6 @@ interface ConfigState {
   error: string | null;
   lastFetch: number;
   updatingUsageStats: boolean;
-
-  // Actions
   fetchConfig: (forceRefresh?: boolean) => Promise<Config>;
   clearCache: () => void;
   updateUsageStatistics: (enabled: boolean) => Promise<void>;
@@ -33,12 +27,10 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
   fetchConfig: async (forceRefresh = false) => {
     const { lastFetch, config } = get();
 
-    // Return cached if valid
     if (!forceRefresh && config && Date.now() - lastFetch < CACHE_EXPIRY_MS) {
       return config;
     }
 
-    // Dedupe concurrent requests
     if (inFlightRequest) {
       return inFlightRequest.promise;
     }
@@ -51,7 +43,6 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
       inFlightRequest = { id: requestId, promise: requestPromise };
       const data = await requestPromise;
 
-      // Ignore stale requests
       if (requestId !== configRequestToken) {
         return data;
       }
@@ -88,7 +79,6 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
     set({ updatingUsageStats: true, error: null });
     try {
       await configApi.updateUsageStatistics(enabled);
-      // Refresh config to get updated value
       const { fetchConfig } = get();
       await fetchConfig(true);
     } catch (error: unknown) {

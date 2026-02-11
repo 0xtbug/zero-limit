@@ -1,12 +1,8 @@
-/**
- * Language State Store
- */
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import i18n from '@/i18n';
-import { STORAGE_KEY_LANGUAGE } from '@/utils/constants';
-import { SupportedLanguage } from '@/utils/language';
+import { STORAGE_KEY_LANGUAGE } from '@/constants';
+import { SupportedLanguage } from '@/shared/utils/language';
 
 interface LanguageState {
   language: SupportedLanguage;

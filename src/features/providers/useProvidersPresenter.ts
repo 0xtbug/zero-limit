@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useAuthStore } from '@/stores';
+import { useAuthStore } from '@/features/auth/auth.store';
 import { authFilesApi } from '@/services/api/auth.service';
 import { oauthApi } from '@/services/api/oauth.service';
 import { useHeaderRefresh } from '@/shared/hooks';

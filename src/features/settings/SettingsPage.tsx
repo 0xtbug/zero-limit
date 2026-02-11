@@ -4,10 +4,14 @@
 
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useThemeStore, useLanguageStore, useAuthStore, useCliProxyStore, useConfigStore } from '@/stores';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
+import { useThemeStore } from '@/features/settings/theme.store';
+import { useLanguageStore } from '@/features/settings/language.store';
+import { useAuthStore } from '@/features/auth/auth.store';
+import { useCliProxyStore } from '@/features/settings/cliProxy.store';
+import { useConfigStore } from '@/features/settings/config.store';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card';
+import { Button } from '@/shared/components/ui/button';
+import { Label } from '@/shared/components/ui/label';
 import { Sun, Moon, Monitor, LogOut, Globe, Server, FolderOpen, Play, Square, CheckCircle2, BarChart3, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 

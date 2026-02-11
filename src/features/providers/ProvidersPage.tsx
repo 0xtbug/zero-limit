@@ -1,19 +1,9 @@
-/**
- * Providers Page
- * Combined view for Connected Accounts and Adding New Providers
- */
-
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useAuthStore } from '@/stores';
-import { authFilesApi } from '@/services/api/authFiles';
-import { oauthApi } from '@/services/api/oauth';
-import { useHeaderRefresh } from '@/hooks';
-import { AuthFile, PROVIDERS, type ProviderId } from '@/types';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
+import { PROVIDERS } from '@/constants';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card';
+import { Button } from '@/shared/components/ui/button';
+import { Badge } from '@/shared/components/ui/badge';
+import { Input } from '@/shared/components/ui/input';
 import {
   Trash2,
   AlertCircle,
@@ -27,7 +17,6 @@ import {
   ChevronDown,
   ChevronRight
 } from 'lucide-react';
-import { openExternalUrl, isTauri } from '@/services/tauri';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,382 +26,43 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import { maskEmail } from '@/utils/privacy';
-import { toast } from 'sonner';
-
-// --- Types ---
-
-type ProviderStatus = 'idle' | 'waiting' | 'polling' | 'success' | 'error';
-
-interface ProviderState {
-  status: ProviderStatus;
-  url?: string;
-  state?: string;
-  error?: string;
-  // Copilot device flow specific
-  userCode?: string;
-  deviceCode?: string;
-  expiresIn?: number;
-  interval?: number;
-}
-
-// --- Helpers ---
-
-async function openInBrowser(url: string): Promise<void> {
-  try {
-    if (isTauri()) {
-      await openExternalUrl(url);
-    } else {
-      window.open(url, '_blank', 'noopener,noreferrer');
-    }
-  } catch (err) {
-    console.warn('Failed to open URL:', err);
-    window.open(url, '_blank', 'noopener,noreferrer');
-  }
-}
-
-
-// Helper to clean up names
-function formatName(name: string | undefined | null): string {
-  if (!name) return 'Unknown';
-  return name.replace(/_gmail_com/g, '').replace(/\.json$/g, '');
-}
-
-// Helper to get provider icon path and whether it needs dark mode inversion
-function getProviderIconInfo(providerId: string): { path: string; needsInvert: boolean } {
-  const id = providerId.toLowerCase();
-  if (id.includes('antigravity')) return { path: '/antigravity/antigravity.png', needsInvert: false };
-  if (id.includes('claude') || id.includes('anthropic')) return { path: '/claude/claude.png', needsInvert: false };
-  if (id.includes('gemini')) return { path: '/gemini/gemini.png', needsInvert: false };
-  if (id.includes('codex') || id.includes('openai')) return { path: '/openai/openai.png', needsInvert: false };
-  if (id.includes('kiro')) return { path: '/kiro/kiro.png', needsInvert: false };
-  if (id.includes('copilot') || id.includes('github')) return { path: '/copilot/copilot.png', needsInvert: true };
-  return { path: '', needsInvert: false };
-}
-
+} from '@/shared/components/ui/alert-dialog';
+import { maskEmail } from '@/shared/utils/privacy';
+import {
+  useProvidersPresenter,
+  formatName,
+  getProviderIconInfo,
+} from '@/features/providers/useProvidersPresenter';
 
 export function ProvidersPage() {
   const { t } = useTranslation();
-  const { isAuthenticated } = useAuthStore();
-
-  // Confirmation state
-  const [fileToDelete, setFileToDelete] = useState<string | null>(null);
-
-  // --- State: Connected Accounts ---
-  const [files, setFiles] = useState<AuthFile[]>([]);
-  const [loadingFiles, setLoadingFiles] = useState(false);
-  const [filesError, setFilesError] = useState<string | null>(null);
-
-  // --- State: Add Provider (OAuth) ---
-  const [providerStates, setProviderStates] = useState<Record<string, ProviderState>>({});
-  const [callbackUrl, setCallbackUrl] = useState('');
-  const [selectedProvider, setSelectedProvider] = useState<ProviderId | null>(null);
-  const [projectInput, setProjectInput] = useState('');
-  const pollingTimers = useRef<Record<string, number>>({});
-
-  // Privacy state
-  const [isPrivacyMode, setIsPrivacyMode] = useState(true);
-
-  // Expanded state for provider groups
-  const [expandedProviders, setExpandedProviders] = useState<Record<string, boolean>>({
-    antigravity: true,
-    codex: true,
-    'gemini-cli': true,
-    kiro: true,
-    copilot: true
-  });
-
-  // Group files by provider type
-  const groupedFiles = useMemo(() => {
-    const groups: Record<string, { displayName: string; files: AuthFile[]; iconInfo: { path: string; needsInvert: boolean } }> = {
-      antigravity: { displayName: 'Antigravity', files: [], iconInfo: { path: '/antigravity/antigravity.png', needsInvert: false } },
-      codex: { displayName: 'Codex (OpenAI)', files: [], iconInfo: { path: '/openai/openai.png', needsInvert: false } },
-      'gemini-cli': { displayName: 'Gemini CLI', files: [], iconInfo: { path: '/gemini/gemini.png', needsInvert: false } },
-      kiro: { displayName: 'Kiro (CodeWhisperer)', files: [], iconInfo: { path: '/kiro/kiro.png', needsInvert: false } },
-      copilot: { displayName: 'GitHub Copilot', files: [], iconInfo: { path: '/copilot/copilot.png', needsInvert: true } }
-    };
-
-    files.forEach(file => {
-      const p = (file.provider || file.filename || '').toLowerCase();
-      if (p.includes('antigravity')) {
-        groups.antigravity.files.push(file);
-      } else if (p.includes('codex') || p.includes('openai')) {
-        groups.codex.files.push(file);
-      } else if (p.includes('gemini')) {
-        groups['gemini-cli'].files.push(file);
-      } else if (p.includes('kiro')) {
-        groups.kiro.files.push(file);
-      } else if (p.includes('copilot') || p.includes('github')) {
-        groups.copilot.files.push(file);
-      }
-    });
-
-    // Return only groups with files
-    return Object.entries(groups).filter(([, group]) => group.files.length > 0);
-  }, [files]);
-
-  const toggleProviderExpanded = (providerId: string) => {
-    setExpandedProviders(prev => ({ ...prev, [providerId]: !prev[providerId] }));
-  };
-
-  // --- Cleanup ---
-  useEffect(() => {
-    return () => {
-      Object.values(pollingTimers.current).forEach((timer) => clearInterval(timer));
-    };
-  }, []);
-
-  // --- Actions: Connected Accounts ---
-
-  const loadFiles = useCallback(async () => {
-    if (!isAuthenticated) return;
-    setLoadingFiles(true);
-    setFilesError(null);
-    try {
-      const response = await authFilesApi.list();
-      setFiles(response?.files ?? []);
-    } catch (err) {
-      setFilesError((err as Error).message);
-    } finally {
-      setLoadingFiles(false);
-    }
-  }, [isAuthenticated]);
-
-  useEffect(() => {
-    loadFiles();
-  }, [loadFiles]);
-
-  useHeaderRefresh(loadFiles);
-
-  const executeDelete = async () => {
-    if (!fileToDelete) return;
-    try {
-      await authFilesApi.deleteFile(fileToDelete);
-      setFileToDelete(null);
-      await loadFiles();
-    } catch (err) {
-      setFilesError((err as Error).message);
-    }
-  };
-
-  // --- Actions: Add Provider (OAuth) ---
-
-  const updateProviderState = (provider: string, update: Partial<ProviderState>) => {
-    setProviderStates((prev) => ({
-      ...prev,
-      [provider]: { ...prev[provider], ...update },
-    }));
-  };
-
-  const stopPolling = useCallback((provider: string) => {
-    if (pollingTimers.current[provider]) {
-      clearInterval(pollingTimers.current[provider]);
-      delete pollingTimers.current[provider];
-    }
-  }, []);
-
-  const startPolling = useCallback((providerId: ProviderId, state: string) => {
-    stopPolling(providerId);
-
-    const timer = window.setInterval(async () => {
-      try {
-        const status = await oauthApi.getAuthStatus(state);
-        if (status.status === 'ok' || status.completed) {
-          updateProviderState(providerId, { status: 'success' });
-          toast.success(t('providers.authSuccess') || 'Provider connected successfully!');
-          stopPolling(providerId);
-          setSelectedProvider(null);
-          loadFiles();
-        } else if (status.status === 'error' || status.failed) {
-          const errorMsg = status.error || status.message || 'Authentication failed';
-          updateProviderState(providerId, {
-            status: 'error',
-            error: errorMsg
-          });
-          toast.error(errorMsg);
-          stopPolling(providerId);
-        }
-      } catch (err) {
-        console.warn('Polling error:', err);
-      }
-    }, 3000);
-
-    pollingTimers.current[providerId] = timer;
-  }, [stopPolling, loadFiles]);
-
-  const startAuth = async (providerId: ProviderId, options?: { projectId?: string }) => {
-    stopPolling(providerId);
-    updateProviderState(providerId, { status: 'waiting', error: undefined });
-    setSelectedProvider(providerId);
-
-    try {
-      // Kiro uses a dedicated web OAuth page
-      if (providerId === 'kiro') {
-        const { apiBase } = useAuthStore.getState();
-        const kiroOAuthUrl = `${apiBase}/v0/oauth/kiro`;
-
-        const initialFiles = files.filter(f =>
-          f.provider?.toLowerCase().includes('kiro') ||
-          f.filename?.toLowerCase().includes('kiro')
-        );
-        const initialKiroCount = initialFiles.length;
-
-        await openInBrowser(kiroOAuthUrl);
-        updateProviderState(providerId, { url: kiroOAuthUrl, status: 'polling' });
-
-        const pollTimer = window.setInterval(async () => {
-          try {
-            const response = await authFilesApi.list();
-            const currentFiles = response?.files ?? [];
-            const currentKiroFiles = currentFiles.filter(f =>
-              f.provider?.toLowerCase().includes('kiro') ||
-              f.filename?.toLowerCase().includes('kiro')
-            );
-
-            // Detect if a new kiro file was added
-            if (currentKiroFiles.length > initialKiroCount) {
-              updateProviderState(providerId, { status: 'success' });
-              toast.success(t('providers.authSuccess') || 'Provider connected successfully!');
-              stopPolling(providerId);
-              setSelectedProvider(null);
-              setFiles(currentFiles);
-            }
-          } catch {
-            // Ignore polling errors - expected during network issues
-          }
-        }, 2000);
-        pollingTimers.current[providerId] = pollTimer;
-        return;
-      }
-
-      // Copilot uses device code flow via backend
-      if (providerId === 'copilot') {
-        try {
-          const response = await oauthApi.startAuth('copilot');
-          const url = response.url || response.verification_uri;
-          const state = response.state;
-          const userCode = response.user_code;
-
-          if (!url) {
-            throw new Error('No verification URL returned from server');
-          }
-
-          updateProviderState(providerId, {
-            status: 'polling',
-            url,
-            state,
-            userCode
-          });
-
-          // Open verification URL
-          await openInBrowser(url);
-
-          // Poll for auth status if we have a state
-          if (state) {
-            startPolling(providerId, state);
-          } else {
-            // Fallback: poll for new auth files
-            const initialFiles = files.filter(f =>
-              f.provider?.toLowerCase().includes('github') ||
-              f.filename?.toLowerCase().includes('github')
-            );
-            const initialCount = initialFiles.length;
-
-            const pollTimer = window.setInterval(async () => {
-              try {
-                const listResponse = await authFilesApi.list();
-                const currentFiles = listResponse?.files ?? [];
-                const currentGithubFiles = currentFiles.filter(f =>
-                  f.provider?.toLowerCase().includes('github') ||
-                  f.filename?.toLowerCase().includes('github')
-                );
-
-                if (currentGithubFiles.length > initialCount) {
-                  updateProviderState(providerId, { status: 'success' });
-                  toast.success(t('providers.authSuccess') || 'Provider connected successfully!');
-                  stopPolling(providerId);
-                  setSelectedProvider(null);
-                  setFiles(currentFiles);
-                }
-              } catch {
-                // Ignore polling errors
-              }
-            }, 3000);
-            pollingTimers.current[providerId] = pollTimer;
-          }
-        } catch (err) {
-          const errorMsg = (err as Error).message;
-          updateProviderState(providerId, {
-            status: 'error',
-            error: errorMsg
-          });
-          toast.error(errorMsg);
-        }
-        return;
-      }
-
-      const response = await oauthApi.startAuth(providerId, options);
-      const url = response.url || response.auth_url;
-      const state = response.state;
-
-      if (!url) {
-        throw new Error('No auth URL returned from server');
-      }
-
-      updateProviderState(providerId, { url, state, status: 'polling' });
-      await openInBrowser(url);
-
-      if (state) {
-        startPolling(providerId, state);
-      }
-    } catch (err) {
-      const errorMsg = (err as Error).message;
-      updateProviderState(providerId, {
-        status: 'error',
-        error: errorMsg,
-      });
-      toast.error(errorMsg);
-    }
-  };
-
-  const cancelAuth = (providerId: ProviderId) => {
-    stopPolling(providerId);
-    updateProviderState(providerId, { status: 'idle' });
-    if (selectedProvider === providerId) {
-      setSelectedProvider(null);
-    }
-  };
-
-  const submitCallback = async () => {
-    if (!selectedProvider || !callbackUrl) return;
-
-    updateProviderState(selectedProvider, { status: 'waiting' });
-
-    try {
-      await oauthApi.submitCallback(selectedProvider, callbackUrl);
-      updateProviderState(selectedProvider, { status: 'success' });
-      stopPolling(selectedProvider);
-      setCallbackUrl('');
-      setSelectedProvider(null);
-      toast.success(t('providers.authSuccess') || 'Provider connected successfully!');
-      loadFiles();
-    } catch (err) {
-      const errorMsg = (err as Error).message;
-      updateProviderState(selectedProvider, {
-        status: 'error',
-        error: errorMsg,
-      });
-      toast.error(errorMsg);
-    }
-  };
-
-  const copyToClipboard = useCallback(async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      toast.success(t('common.copied') || 'Copied to clipboard!');
-    } catch { /* ignore */ }
-  }, [t]);
+  const {
+    isAuthenticated,
+    files,
+    loadingFiles,
+    filesError,
+    groupedFiles,
+    expandedProviders,
+    toggleProviderExpanded,
+    fileToDelete,
+    setFileToDelete,
+    executeDelete,
+    providerStates,
+    selectedProvider,
+    setSelectedProvider,
+    projectInput,
+    setProjectInput,
+    callbackUrl,
+    setCallbackUrl,
+    startAuth,
+    cancelAuth,
+    submitCallback,
+    updateProviderState,
+    copyToClipboard,
+    isPrivacyMode,
+    togglePrivacyMode,
+    openInBrowser,
+  } = useProvidersPresenter();
 
   if (!isAuthenticated) {
      return (
@@ -455,7 +105,7 @@ export function ProvidersPage() {
           {/* Privacy Toggle */}
            <Button
             variant="outline"
-            onClick={() => setIsPrivacyMode(!isPrivacyMode)}
+            onClick={togglePrivacyMode}
             title={isPrivacyMode ? "Show private info" : "Hide private info"}
           >
             {isPrivacyMode ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -727,7 +377,7 @@ export function ProvidersPage() {
                             onClick={() => {
                                 if (provider.requiresProjectId) {
                                      setSelectedProvider(provider.id);
-                                     setProjectInput(''); // Reset input
+                                     setProjectInput('');
                                      updateProviderState(provider.id, { status: 'idle' });
                                 } else {
                                      startAuth(provider.id);

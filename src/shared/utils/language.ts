@@ -2,7 +2,7 @@
  * Language Utilities
  */
 
-import { STORAGE_KEY_LANGUAGE } from './constants';
+import { STORAGE_KEY_LANGUAGE } from '@/constants';
 
 const SUPPORTED_LANGUAGES = ['en', 'zh-CN', 'id', 'ja', 'vi', 'th', 'ko'] as const;
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];

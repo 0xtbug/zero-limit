@@ -1,28 +1,17 @@
 import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Button } from '@/components/ui/button'
+import { Button } from '@/shared/components/ui/button'
 import {
-  LayoutDashboard,
-  Settings,
-  Users,
-  BarChart3,
   Menu,
   X,
   PanelLeftClose,
   PanelLeftOpen,
-  Info,
 } from 'lucide-react'
 import { useState } from 'react'
-import { useAuthStore } from '@/stores'
-import { useInterval, useAppVersion } from '@/hooks'
+import { useAuthStore } from '@/features/auth/auth.store'
+import { useInterval, useAppVersion } from '@/shared/hooks'
+import { NAV_ITEMS } from '@/constants'
 
-const navItems = [
-  { path: '/dashboard', icon: LayoutDashboard, labelKey: 'nav.dashboard' },
-  { path: '/quota', icon: BarChart3, labelKey: 'nav.quota' },
-  { path: '/providers', icon: Users, labelKey: 'providers.title' },
-  { path: '/settings', icon: Settings, labelKey: 'nav.settings' },
-  { path: '/about', icon: Info, labelKey: 'nav.about' },
-]
 
 function Default({ children }: { children: React.ReactNode }) {
   const { t } = useTranslation()
@@ -85,7 +74,7 @@ function Default({ children }: { children: React.ReactNode }) {
           </div>
 
           <nav className="space-y-2 p-2 pt-4">
-            {navItems.map((item) => {
+            {NAV_ITEMS.map((item) => {
               const isActive = location.pathname === item.path
               return (
                 <Link

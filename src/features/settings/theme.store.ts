@@ -1,10 +1,6 @@
-/**
- * Theme State Store
- */
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { STORAGE_KEY_THEME } from '@/utils/constants';
+import { STORAGE_KEY_THEME } from '@/constants';
 
 type Theme = 'light' | 'dark' | 'system';
 
@@ -28,7 +24,7 @@ function applyTheme(theme: 'light' | 'dark'): void {
 
 export const useThemeStore = create<ThemeState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       theme: 'system',
       resolvedTheme: getSystemTheme(),
 
@@ -51,7 +47,6 @@ export const useThemeStore = create<ThemeState>()(
   )
 );
 
-// Listen for system theme changes
 if (typeof window !== 'undefined') {
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
     const { theme, setTheme } = useThemeStore.getState();
