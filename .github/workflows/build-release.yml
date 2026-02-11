@@ -243,9 +243,9 @@ jobs:
           path: ZeroLimit_*_Windows_arm64-setup.exe.sig
 
   # ===========================================
-  # 4. Build macOS (Universal: x64 + ARM64)
+  # 4. Build macOS Intel (x64)
   # ===========================================
-  build-macos:
+  build-macos-x64:
     needs: create-release
     runs-on: macos-latest
     steps:
@@ -265,7 +265,7 @@ jobs:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: aarch64-apple-darwin,x86_64-apple-darwin
+          targets: x86_64-apple-darwin
 
       - name: Cache Cargo
         uses: actions/cache@v4
@@ -276,15 +276,12 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             src-tauri/target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-cargo-x64-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
-            ${{ runner.os }}-cargo-
+            ${{ runner.os }}-cargo-x64-
 
       - name: Install frontend dependencies
         run: pnpm install
-
-      - name: Build Tauri (Apple Silicon)
-        run: pnpm tauri build --target aarch64-apple-darwin
 
       - name: Build Tauri (Intel)
         run: pnpm tauri build --target x86_64-apple-darwin
@@ -292,11 +289,6 @@ jobs:
       - name: Rename and Prepare artifacts
         run: |
           VERSION="${{ needs.create-release.outputs.version }}"
-
-          # Rename Apple Silicon artifacts
-          mv src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/ZeroLimit_${VERSION}_aarch64.dmg "ZeroLimit_${VERSION}_macOS_aarch64.dmg"
-          mv src-tauri/target/aarch64-apple-darwin/release/bundle/macos/ZeroLimit.app.tar.gz "ZeroLimit_${VERSION}_macOS_aarch64.app.tar.gz"
-          mv src-tauri/target/aarch64-apple-darwin/release/bundle/macos/ZeroLimit.app.tar.gz.sig "ZeroLimit_${VERSION}_macOS_aarch64.app.tar.gz.sig"
 
           # Rename Intel artifacts
           mv src-tauri/target/x86_64-apple-darwin/release/bundle/dmg/ZeroLimit_${VERSION}_x64.dmg "ZeroLimit_${VERSION}_macOS_x64.dmg"
@@ -309,21 +301,87 @@ jobs:
           tag_name: v${{ needs.create-release.outputs.version }}
           draft: true
           files: |
-            ZeroLimit_*_macOS_aarch64.dmg
             ZeroLimit_*_macOS_x64.dmg
-            ZeroLimit_*_macOS_aarch64.app.tar.gz
-            ZeroLimit_*_macOS_aarch64.app.tar.gz.sig
             ZeroLimit_*_macOS_x64.app.tar.gz
             ZeroLimit_*_macOS_x64.app.tar.gz.sig
 
       - name: Upload signatures for latest.json
         uses: actions/upload-artifact@v4
         with:
-          name: signatures-macos
-          path: ZeroLimit_*_macOS_*.app.tar.gz.sig
+          name: signatures-macos-x64
+          path: ZeroLimit_*_macOS_x64.app.tar.gz.sig
 
   # ===========================================
-  # 5. Build Linux x64
+  # 5. Build macOS Apple Silicon (ARM64)
+  # ===========================================
+  build-macos-arm64:
+    needs: create-release
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin
+
+      - name: Cache Cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            src-tauri/target/
+          key: ${{ runner.os }}-cargo-arm64-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-arm64-
+
+      - name: Install frontend dependencies
+        run: pnpm install
+
+      - name: Build Tauri (Apple Silicon)
+        run: pnpm tauri build --target aarch64-apple-darwin
+
+      - name: Rename and Prepare artifacts
+        run: |
+          VERSION="${{ needs.create-release.outputs.version }}"
+
+          # Rename Apple Silicon artifacts
+          mv src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/ZeroLimit_${VERSION}_aarch64.dmg "ZeroLimit_${VERSION}_macOS_aarch64.dmg"
+          mv src-tauri/target/aarch64-apple-darwin/release/bundle/macos/ZeroLimit.app.tar.gz "ZeroLimit_${VERSION}_macOS_aarch64.app.tar.gz"
+          mv src-tauri/target/aarch64-apple-darwin/release/bundle/macos/ZeroLimit.app.tar.gz.sig "ZeroLimit_${VERSION}_macOS_aarch64.app.tar.gz.sig"
+
+      - name: Upload artifacts to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.create-release.outputs.version }}
+          draft: true
+          files: |
+            ZeroLimit_*_macOS_aarch64.dmg
+            ZeroLimit_*_macOS_aarch64.app.tar.gz
+            ZeroLimit_*_macOS_aarch64.app.tar.gz.sig
+
+      - name: Upload signatures for latest.json
+        uses: actions/upload-artifact@v4
+        with:
+          name: signatures-macos-arm64
+          path: ZeroLimit_*_macOS_aarch64.app.tar.gz.sig
+
+  # ===========================================
+  # 6. Build Linux x64
   # ===========================================
   build-linux:
     needs: create-release
@@ -381,16 +439,21 @@ jobs:
         run: |
           VERSION="${{ needs.create-release.outputs.version }}"
 
+          echo "Listing build output directory:"
+          ls -R src-tauri/target/release/bundle/
+
           # Debian (using wildcard for safety)
-          mv src-tauri/target/release/bundle/deb/*_${VERSION}_amd64.deb "ZeroLimit_${VERSION}_Linux_x64.deb"
+          find src-tauri/target/release/bundle/deb/ -name "*_${VERSION}_amd64.deb" -exec mv {} "ZeroLimit_${VERSION}_Linux_x64.deb" \;
 
           # RPM (using wildcard for safety)
-          mv src-tauri/target/release/bundle/rpm/*-${VERSION}-1.x86_64.rpm "ZeroLimit_${VERSION}_Linux_x64.rpm"
+          find src-tauri/target/release/bundle/rpm/ -name "*-${VERSION}-1.x86_64.rpm" -exec mv {} "ZeroLimit_${VERSION}_Linux_x64.rpm" \;
 
           # AppImage (using wildcard for safety)
-          mv src-tauri/target/release/bundle/appimage/*_${VERSION}_amd64.AppImage "ZeroLimit_${VERSION}_Linux_x64.AppImage"
-          mv src-tauri/target/release/bundle/appimage/*_${VERSION}_amd64.AppImage.tar.gz "ZeroLimit_${VERSION}_Linux_x64.AppImage.tar.gz"
-          mv src-tauri/target/release/bundle/appimage/*_${VERSION}_amd64.AppImage.tar.gz.sig "ZeroLimit_${VERSION}_Linux_x64.AppImage.tar.gz.sig"
+          find src-tauri/target/release/bundle/appimage/ -name "*_${VERSION}_amd64.AppImage" -exec mv {} "ZeroLimit_${VERSION}_Linux_x64.AppImage" \;
+
+          # AppImage.tar.gz (optional updater artifact)
+          find src-tauri/target/release/bundle/appimage/ -name "*_${VERSION}_amd64.AppImage.tar.gz" -exec mv {} "ZeroLimit_${VERSION}_Linux_x64.AppImage.tar.gz" \;
+          find src-tauri/target/release/bundle/appimage/ -name "*_${VERSION}_amd64.AppImage.tar.gz.sig" -exec mv {} "ZeroLimit_${VERSION}_Linux_x64.AppImage.tar.gz.sig" \;
 
       - name: Upload artifacts to release
         uses: softprops/action-gh-release@v2
@@ -411,10 +474,10 @@ jobs:
           path: ZeroLimit_*_Linux_x64.AppImage.tar.gz.sig
 
   # ===========================================
-  # 6. Publish Release + Generate latest.json
+  # 7. Publish Release + Generate latest.json
   # ===========================================
   publish-release:
-    needs: [create-release, build-windows-x64, build-windows-arm64, build-macos, build-linux]
+    needs: [create-release, build-windows-x64, build-windows-arm64, build-macos-x64, build-macos-arm64, build-linux]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
