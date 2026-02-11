@@ -14,14 +14,13 @@ fn cleanup_on_exit() {
     // Kill any running CLI proxy process
     if let Ok(mut guard) = state::CLI_PROXY_PROCESS.lock() {
         if let Some(ref mut child) = *guard {
-            let pid = child.id();
-
             #[cfg(windows)]
             {
                 use std::process::Command;
                 use std::os::windows::process::CommandExt;
                 const CREATE_NO_WINDOW: u32 = 0x08000000;
 
+                let pid = child.id();
                 let _ = Command::new("taskkill")
                     .args(["/F", "/T", "/PID", &pid.to_string()])
                     .creation_flags(CREATE_NO_WINDOW)
@@ -52,6 +51,14 @@ fn cleanup_on_exit() {
                     let _ = Command::new("taskkill")
                         .args(["/F", "/T", "/IM", name])
                         .creation_flags(CREATE_NO_WINDOW)
+                        .output();
+                }
+
+                #[cfg(not(windows))]
+                {
+                    use std::process::Command;
+                    let _ = Command::new("pkill")
+                        .args(["-f", name])
                         .output();
                 }
             }
