@@ -14,7 +14,10 @@
     "copy": "复制",
     "copied": "已复制！",
     "download": "下载",
-    "upload": "上传"
+    "upload": "上传",
+    "deleteAll": "全部删除",
+    "deleting": "正在删除...",
+    "deleteWarning": "此操作无法撤销。这将永久删除您的帐户连接。"
   },
   "auth": {
     "login": "登录",
@@ -67,7 +70,9 @@
     "openLink": "打开链接",
     "verify": "验证",
     "manualCallback": "如果未自动检测到回调：",
-    "authSuccess": "提供商连接成功！"
+    "authSuccess": "提供商连接成功！",
+    "deleteAllConfirm": "这将永久删除所有连接的帐户。此操作无法撤销。",
+    "deleteAllSuccess": "所有帐户已成功删除"
   },
   "oauth": {
     "pasteCallback": "在此粘贴回调 URL..."

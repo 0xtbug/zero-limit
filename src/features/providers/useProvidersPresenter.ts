@@ -59,6 +59,9 @@ export function useProvidersPresenter() {
   const [loadingFiles, setLoadingFiles] = useState(false);
   const [filesError, setFilesError] = useState<string | null>(null);
 
+  const [isDeletingAll, setIsDeletingAll] = useState(false);
+  const [showDeleteAllConfirmation, setShowDeleteAllConfirmation] = useState(false);
+
   const [providerStates, setProviderStates] = useState<Record<string, ProviderState>>({});
   const [callbackUrl, setCallbackUrl] = useState('');
   const [selectedProvider, setSelectedProvider] = useState<ProviderId | null>(null);
@@ -137,6 +140,21 @@ export function useProvidersPresenter() {
       setFilesError((err as Error).message);
     }
   }, [fileToDelete, loadFiles]);
+
+  const executeDeleteAll = useCallback(async () => {
+    setIsDeletingAll(true);
+    try {
+      await authFilesApi.deleteAll();
+      setShowDeleteAllConfirmation(false);
+      await loadFiles();
+      toast.success(t('providers.deleteAllSuccess') || 'All accounts deleted successfully');
+    } catch (err) {
+      setFilesError((err as Error).message);
+      toast.error((err as Error).message);
+    } finally {
+      setIsDeletingAll(false);
+    }
+  }, [loadFiles, t]);
 
   const updateProviderState = useCallback((provider: string, update: Partial<ProviderState>) => {
     setProviderStates((prev) => ({
@@ -348,6 +366,12 @@ export function useProvidersPresenter() {
     fileToDelete,
     setFileToDelete,
     executeDelete,
+
+    // Delete All
+    isDeletingAll,
+    executeDeleteAll,
+    showDeleteAllConfirmation,
+    setShowDeleteAllConfirmation,
 
     // Add provider (OAuth)
     providerStates,

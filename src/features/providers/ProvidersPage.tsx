@@ -62,6 +62,10 @@ export function ProvidersPage() {
     isPrivacyMode,
     togglePrivacyMode,
     openInBrowser,
+    isDeletingAll,
+    executeDeleteAll,
+    showDeleteAllConfirmation,
+    setShowDeleteAllConfirmation,
   } = useProvidersPresenter();
 
   if (!isAuthenticated) {
@@ -99,6 +103,37 @@ export function ProvidersPage() {
         </AlertDialogContent>
       </AlertDialog>
 
+      <AlertDialog open={showDeleteAllConfirmation} onOpenChange={setShowDeleteAllConfirmation}>
+        <AlertDialogContent className="border-border/50">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('common.confirm', 'Are you sure?')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('providers.deleteAllConfirm', 'This will permanently delete all connected accounts. This action cannot be undone.')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeletingAll}>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                executeDeleteAll();
+              }}
+              className="bg-red-500 hover:bg-red-600 text-white"
+              disabled={isDeletingAll}
+            >
+              {isDeletingAll ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {t('common.deleting', 'Deleting...')}
+                </>
+              ) : (
+                t('common.deleteAll', 'Delete All')
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold">{t('providers.title')}</h1>
 
@@ -119,6 +154,17 @@ export function ProvidersPage() {
                     <CheckCircle className="h-5 w-5" />
                     {t('providers.connectedAccounts')} ({files.length})
                 </h2>
+                {files.length > 0 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowDeleteAllConfirmation(true)}
+                    className="h-8 text-xs bg-red-500/10 text-red-500 hover:bg-red-500/20 shadow-none border border-red-500/20"
+                  >
+                    <Trash2 className="mr-2 h-3.5 w-3.5" />
+                    {t('common.deleteAll', 'Delete All')}
+                  </Button>
+                )}
             </div>
 
             {filesError && (

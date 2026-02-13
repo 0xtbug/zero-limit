@@ -14,7 +14,10 @@
     "copy": "Sao chép",
     "copied": "Đã sao chép!",
     "download": "Tải xuống",
-    "upload": "Tải lên"
+    "upload": "Tải lên",
+    "deleteAll": "Xóa tất cả",
+    "deleting": "Đang xóa...",
+    "deleteWarning": "Hành động này không thể hoàn tác. Việc này sẽ xóa vĩnh viễn kết nối tài khoản của bạn."
   },
   "auth": {
     "login": "Đăng nhập",
@@ -67,7 +70,9 @@
     "openLink": "Mở liên kết",
     "verify": "Xác minh",
     "manualCallback": "Nếu không tự động phát hiện callback hợp lệ:",
-    "authSuccess": "Kết nối nhà cung cấp thành công!"
+    "authSuccess": "Kết nối nhà cung cấp thành công!",
+    "deleteAllConfirm": "Việc này sẽ xóa vĩnh viễn tất cả các tài khoản đã kết nối. Hành động này không thể hoàn tác.",
+    "deleteAllSuccess": "Tất cả tài khoản đã được xóa thành công"
   },
   "oauth": {
     "pasteCallback": "Dán URL callback vào đây..."
