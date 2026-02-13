@@ -15,7 +15,8 @@ import {
   Eye,
   EyeOff,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  Key
 } from 'lucide-react';
 import {
   AlertDialog,
@@ -66,6 +67,7 @@ export function ProvidersPage() {
     executeDeleteAll,
     showDeleteAllConfirmation,
     setShowDeleteAllConfirmation,
+    copyRefreshToken,
   } = useProvidersPresenter();
 
   if (!isAuthenticated) {
@@ -262,15 +264,26 @@ export function ProvidersPage() {
                                    </div>
                                  </div>
 
-                                 <Button
-                                   size="icon"
-                                   variant="ghost"
-                                   className="h-8 w-8 text-destructive hover:bg-destructive/10 opacity-80 group-hover:opacity-100"
-                                   onClick={() => setFileToDelete(file.id)}
-                                   title={t('common.delete')}
-                                 >
-                                   <Trash2 className="h-4 w-4" />
-                                 </Button>
+                                 <div className="flex items-center gap-1">
+                                   <Button
+                                     size="icon"
+                                     variant="ghost"
+                                     className="h-8 w-8 text-primary hover:bg-primary/10 opacity-80 group-hover:opacity-100"
+                                     onClick={() => copyRefreshToken(file.name || file.filename || file.id)}
+                                     title={t('common.copyRefreshToken', 'Copy Refresh Token')}
+                                   >
+                                     <Key className="h-4 w-4" />
+                                   </Button>
+                                   <Button
+                                     size="icon"
+                                     variant="ghost"
+                                     className="h-8 w-8 text-destructive hover:bg-destructive/10 opacity-80 group-hover:opacity-100"
+                                     onClick={() => setFileToDelete(file.id)}
+                                     title={t('common.delete')}
+                                   >
+                                     <Trash2 className="h-4 w-4" />
+                                   </Button>
+                                 </div>
                                </div>
                              );
                            })}

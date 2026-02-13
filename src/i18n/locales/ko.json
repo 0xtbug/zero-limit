@@ -17,7 +17,8 @@
     "upload": "업로드",
     "deleteAll": "모두 삭제",
     "deleting": "삭제 중...",
-    "deleteWarning": "이 작업은 취소할 수 없습니다. 계정 연결이 영구적으로 삭제됩니다."
+    "deleteWarning": "이 작업은 취소할 수 없습니다. 계정 연결이 영구적으로 삭제됩니다.",
+    "copyRefreshToken": "갱신 토큰 복사"
   },
   "auth": {
     "login": "로그인",

@@ -17,7 +17,8 @@
     "upload": "Unggah",
     "deleteAll": "Hapus Semua",
     "deleting": "Menghapus...",
-    "deleteWarning": "Tindakan ini tidak dapat dibatalkan. Ini akan menghapus koneksi akun Anda secara permanen."
+    "deleteWarning": "Tindakan ini tidak dapat dibatalkan. Ini akan menghapus koneksi akun Anda secara permanen.",
+    "copyRefreshToken": "Salin Token Penyegaran"
   },
   "auth": {
     "login": "Masuk",

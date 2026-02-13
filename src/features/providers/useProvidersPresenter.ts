@@ -347,6 +347,30 @@ export function useProvidersPresenter() {
     } catch { /* ignore */ }
   }, [t]);
 
+  const copyRefreshToken = useCallback(async (filename: string | undefined | null) => {
+    try {
+      if (!filename) {
+        toast.error('Filename is missing');
+        return;
+      }
+      let name = filename;
+      if (!name.toLowerCase().endsWith('.json')) {
+        name = `${name}.json`;
+      }
+      const data = await authFilesApi.download(name);
+      const refreshToken = data.refresh_token;
+
+      if (refreshToken) {
+        await navigator.clipboard.writeText(refreshToken);
+        toast.success(t('common.copied') || 'Copied to clipboard!');
+      } else {
+        toast.error('No refresh token found in this file');
+      }
+    } catch (err) {
+      toast.error(`Failed to copy refresh token: ${(err as Error).message}`);
+    }
+  }, [t]);
+
   const togglePrivacyMode = useCallback(() => {
     setIsPrivacyMode(prev => !prev);
   }, []);
@@ -386,6 +410,7 @@ export function useProvidersPresenter() {
     submitCallback,
     updateProviderState,
     copyToClipboard,
+    copyRefreshToken,
 
     // Privacy
     isPrivacyMode,

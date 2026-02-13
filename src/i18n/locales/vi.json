@@ -17,7 +17,8 @@
     "upload": "Tải lên",
     "deleteAll": "Xóa tất cả",
     "deleting": "Đang xóa...",
-    "deleteWarning": "Hành động này không thể hoàn tác. Việc này sẽ xóa vĩnh viễn kết nối tài khoản của bạn."
+    "deleteWarning": "Hành động này không thể hoàn tác. Việc này sẽ xóa vĩnh viễn kết nối tài khoản của bạn.",
+    "copyRefreshToken": "Sao chép Token làm mới"
   },
   "auth": {
     "login": "Đăng nhập",

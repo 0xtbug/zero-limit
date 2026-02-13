@@ -17,7 +17,8 @@
     "upload": "Upload",
     "deleteAll": "Delete All",
     "deleting": "Deleting...",
-    "deleteWarning": "This action cannot be undone. This will permanently delete your account connection."
+    "deleteWarning": "This action cannot be undone. This will permanently delete your account connection.",
+    "copyRefreshToken": "Copy Refresh Token"
   },
   "auth": {
     "login": "Login",

@@ -17,7 +17,8 @@
     "upload": "アップロード",
     "deleteAll": "すべて削除",
     "deleting": "削除中...",
-    "deleteWarning": "この操作は取り消せません。アカウント接続が完全に削除されます。"
+    "deleteWarning": "この操作は取り消せません。アカウント接続が完全に削除されます。",
+    "copyRefreshToken": "リフレッシュトークンをコピー"
   },
   "auth": {
     "login": "ログイン",

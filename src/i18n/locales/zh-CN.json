@@ -17,7 +17,8 @@
     "upload": "上传",
     "deleteAll": "全部删除",
     "deleting": "正在删除...",
-    "deleteWarning": "此操作无法撤销。这将永久删除您的帐户连接。"
+    "deleteWarning": "此操作无法撤销。这将永久删除您的帐户连接。",
+    "copyRefreshToken": "复制刷新令牌"
   },
   "auth": {
     "login": "登录",
