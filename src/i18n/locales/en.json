@@ -18,7 +18,9 @@
     "deleteAll": "Delete All",
     "deleting": "Deleting...",
     "deleteWarning": "This action cannot be undone. This will permanently delete your account connection.",
-    "copyRefreshToken": "Copy Refresh Token"
+    "copyRefreshToken": "Copy Refresh Token",
+    "copyAll": "Copy All",
+    "copying": "Copying..."
   },
   "auth": {
     "login": "Login",
@@ -73,7 +75,11 @@
     "manualCallback": "If valid callback is not detected automatically:",
     "authSuccess": "Provider connected successfully!",
     "deleteAllConfirm": "This will permanently delete all connected accounts. This action cannot be undone.",
-    "deleteAllSuccess": "All accounts deleted successfully"
+    "deleteAllSuccess": "All accounts deleted successfully",
+    "copyAllTitle": "Copy All Refresh Tokens",
+    "selectProviders": "Select the providers you want to include in the copy.",
+    "copySuccess": "Refresh tokens copied to clipboard",
+    "noTokensFound": "No refresh tokens found"
   },
   "oauth": {
     "pasteCallback": "Paste callback URL here..."

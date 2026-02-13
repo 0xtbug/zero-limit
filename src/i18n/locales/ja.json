@@ -18,7 +18,9 @@
     "deleteAll": "すべて削除",
     "deleting": "削除中...",
     "deleteWarning": "この操作は取り消せません。アカウント接続が完全に削除されます。",
-    "copyRefreshToken": "リフレッシュトークンをコピー"
+    "copyRefreshToken": "リフレッシュトークンをコピー",
+    "copyAll": "すべてコピー",
+    "copying": "コピー中..."
   },
   "auth": {
     "login": "ログイン",
@@ -73,7 +75,11 @@
     "manualCallback": "有効なコールバックが自動検出されない場合:",
     "authSuccess": "プロバイダーの接続に成功しました！",
     "deleteAllConfirm": "接続されているすべてのアカウントが完全に削除されます。この操作は取り消せません。",
-    "deleteAllSuccess": "すべてのアカウントが正常に削除されました"
+    "deleteAllSuccess": "すべてのアカウントが正常に削除されました",
+    "copyAllTitle": "すべてのリフレッシュトークンをコピー",
+    "selectProviders": "コピーに含めたいプロバイダーを選択してください。",
+    "copySuccess": "リフレッシュトークンがクリップボードにコピーされました",
+    "noTokensFound": "リフレッシュトークンが見つかりません"
   },
   "oauth": {
     "pasteCallback": "コールバックURLをここに貼り付け..."

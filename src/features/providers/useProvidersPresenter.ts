@@ -62,6 +62,10 @@ export function useProvidersPresenter() {
   const [isDeletingAll, setIsDeletingAll] = useState(false);
   const [showDeleteAllConfirmation, setShowDeleteAllConfirmation] = useState(false);
 
+  const [showCopyAllModal, setShowCopyAllModal] = useState(false);
+  const [copyingAll, setCopyingAll] = useState(false);
+  const [selectedProvidersForCopy, setSelectedProvidersForCopy] = useState<string[]>([]);
+
   const [providerStates, setProviderStates] = useState<Record<string, ProviderState>>({});
   const [callbackUrl, setCallbackUrl] = useState('');
   const [selectedProvider, setSelectedProvider] = useState<ProviderId | null>(null);
@@ -155,6 +159,69 @@ export function useProvidersPresenter() {
       setIsDeletingAll(false);
     }
   }, [loadFiles, t]);
+
+  const openCopyAllModal = useCallback(() => {
+    const allProviderIds = groupedFiles.map(([id]) => id);
+    setSelectedProvidersForCopy(allProviderIds);
+    setShowCopyAllModal(true);
+  }, [groupedFiles]);
+
+  const toggleCopyProvider = useCallback((providerId: string) => {
+    setSelectedProvidersForCopy(prev => {
+      if (prev.includes(providerId)) {
+        return prev.filter(id => id !== providerId);
+      } else {
+        return [...prev, providerId];
+      }
+    });
+  }, []);
+
+  const executeCopyAll = useCallback(async () => {
+    if (selectedProvidersForCopy.length === 0) return;
+
+    setCopyingAll(true);
+    try {
+      const results: Array<{ provider: string, account: string, refresh_token: string }> = [];
+
+      const filesToProcess = groupedFiles
+        .filter(([id]) => selectedProvidersForCopy.includes(id))
+        .flatMap(([, group]) => group.files);
+
+      for (const file of filesToProcess) {
+        let name = file.name || file.filename || file.id;
+        if (!name) continue;
+        if (!name.toLowerCase().endsWith('.json')) {
+          name = `${name}.json`;
+        }
+
+        try {
+          const data = await authFilesApi.download(name);
+          if (data && data.refresh_token) {
+            results.push({
+              provider: file.provider,
+              account: (file.metadata?.email as string) || (file.account as string) || file.filename,
+              refresh_token: data.refresh_token
+            });
+          }
+        } catch (err) {
+          console.error(`Failed to download ${name}`, err);
+        }
+      }
+
+      if (results.length > 0) {
+        const tokens = results.map(r => r.refresh_token).join('\n');
+        await navigator.clipboard.writeText(tokens);
+        toast.success(t('providers.copySuccess') || 'Refresh tokens copied to clipboard');
+        setShowCopyAllModal(false);
+      } else {
+        toast.warning(t('providers.noTokensFound') || 'No refresh tokens found');
+      }
+    } catch (err) {
+      toast.error(t('common.error') || 'An error occurred');
+    } finally {
+      setCopyingAll(false);
+    }
+  }, [groupedFiles, selectedProvidersForCopy, t]);
 
   const updateProviderState = useCallback((provider: string, update: Partial<ProviderState>) => {
     setProviderStates((prev) => ({
@@ -396,6 +463,15 @@ export function useProvidersPresenter() {
     executeDeleteAll,
     showDeleteAllConfirmation,
     setShowDeleteAllConfirmation,
+
+    // Copy All
+    showCopyAllModal,
+    setShowCopyAllModal,
+    copyingAll,
+    selectedProvidersForCopy,
+    openCopyAllModal,
+    toggleCopyProvider,
+    executeCopyAll,
 
     // Add provider (OAuth)
     providerStates,

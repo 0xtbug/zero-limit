@@ -19,6 +19,14 @@ import {
   Key
 } from 'lucide-react';
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/shared/components/ui/dialog';
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -68,6 +76,15 @@ export function ProvidersPage() {
     showDeleteAllConfirmation,
     setShowDeleteAllConfirmation,
     copyRefreshToken,
+
+    // Copy All
+    showCopyAllModal,
+    setShowCopyAllModal,
+    copyingAll,
+    selectedProvidersForCopy,
+    openCopyAllModal,
+    toggleCopyProvider,
+    executeCopyAll,
   } = useProvidersPresenter();
 
   if (!isAuthenticated) {
@@ -157,15 +174,26 @@ export function ProvidersPage() {
                     {t('providers.connectedAccounts')} ({files.length})
                 </h2>
                 {files.length > 0 && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowDeleteAllConfirmation(true)}
-                    className="h-8 text-xs bg-red-500/10 text-red-500 hover:bg-red-500/20 shadow-none border border-red-500/20"
-                  >
-                    <Trash2 className="mr-2 h-3.5 w-3.5" />
-                    {t('common.deleteAll', 'Delete All')}
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={openCopyAllModal}
+                      className="h-8 text-xs"
+                    >
+                      <Key className="mr-2 h-3.5 w-3.5" />
+                      {t('common.copyAll', 'Copy All')}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowDeleteAllConfirmation(true)}
+                      className="h-8 text-xs bg-red-500/10 text-red-500 hover:bg-red-500/20 shadow-none border border-red-500/20"
+                    >
+                      <Trash2 className="mr-2 h-3.5 w-3.5" />
+                      {t('common.deleteAll', 'Delete All')}
+                    </Button>
+                  </div>
                 )}
             </div>
 
@@ -475,6 +503,60 @@ export function ProvidersPage() {
                 })}
             </div>
         </section>
+
+        <Dialog open={showCopyAllModal} onOpenChange={setShowCopyAllModal}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>{t('providers.copyAllTitle', 'Copy All Refresh Tokens')}</DialogTitle>
+            <DialogDescription>
+              {t('providers.selectProviders', 'Select the providers you want to include in the copy.')}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+             <div className="space-y-4">
+                {groupedFiles.map(([providerId, group]) => (
+                  <div key={providerId} className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id={`copy-${providerId}`}
+                      checked={selectedProvidersForCopy.includes(providerId)}
+                      onChange={() => toggleCopyProvider(providerId)}
+                      className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary accent-primary"
+                    />
+                    <label
+                      htmlFor={`copy-${providerId}`}
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2 cursor-pointer select-none"
+                    >
+                       <img
+                            src={group.iconInfo.path}
+                            alt={group.displayName}
+                            className={`h-4 w-4 object-contain ${group.iconInfo.needsInvert ? 'invert-on-dark' : ''}`}
+                          />
+                      {group.displayName}
+                      <span className="text-xs text-muted-foreground">({group.files.length})</span>
+                    </label>
+                  </div>
+                ))}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCopyAllModal(false)}>{t('common.cancel')}</Button>
+            <Button onClick={executeCopyAll} disabled={copyingAll || selectedProvidersForCopy.length === 0}>
+              {copyingAll ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {t('common.copying', 'Copying...')}
+                </>
+              ) : (
+                <>
+                  <Key className="mr-2 h-4 w-4" />
+                  {t('common.copy', 'Copy')}
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
