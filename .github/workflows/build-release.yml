@@ -439,7 +439,7 @@ jobs:
         run: |
           VERSION="${{ needs.create-release.outputs.version }}"
 
-          echo "Listing build output directory:"
+          echo "=== Listing build output directory ==="
           ls -R src-tauri/target/release/bundle/
 
           # Debian (using wildcard for safety)
@@ -451,15 +451,19 @@ jobs:
           # AppImage (using wildcard for safety)
           find src-tauri/target/release/bundle/appimage/ -name "*_${VERSION}_amd64.AppImage" -exec mv {} "ZeroLimit_${VERSION}_Linux_x64.AppImage" \;
 
-          # AppImage.tar.gz (optional updater artifact)
-          find src-tauri/target/release/bundle/appimage/ -name "*_${VERSION}_amd64.AppImage.tar.gz" -exec mv {} "ZeroLimit_${VERSION}_Linux_x64.AppImage.tar.gz" \;
-          find src-tauri/target/release/bundle/appimage/ -name "*_${VERSION}_amd64.AppImage.tar.gz.sig" -exec mv {} "ZeroLimit_${VERSION}_Linux_x64.AppImage.tar.gz.sig" \;
+          # AppImage.tar.gz and signature (updater artifacts)
+          find src-tauri/target/release/bundle/appimage/ -name "*.AppImage.tar.gz" ! -name "*.sig" -exec mv {} "ZeroLimit_${VERSION}_Linux_x64.AppImage.tar.gz" \;
+          find src-tauri/target/release/bundle/appimage/ -name "*.AppImage.tar.gz.sig" -exec mv {} "ZeroLimit_${VERSION}_Linux_x64.AppImage.tar.gz.sig" \;
+
+          echo "=== Prepared artifacts in workspace ==="
+          ls -la ZeroLimit_* || echo "No artifacts found!"
 
       - name: Upload artifacts to release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ needs.create-release.outputs.version }}
           draft: true
+          fail_on_unmatched_files: false
           files: |
             ZeroLimit_*_Linux_x64.deb
             ZeroLimit_*_Linux_x64.rpm
@@ -472,6 +476,7 @@ jobs:
         with:
           name: signatures-linux
           path: ZeroLimit_*_Linux_x64.AppImage.tar.gz.sig
+          if-no-files-found: warn
 
   # ===========================================
   # 7. Publish Release + Generate latest.json
