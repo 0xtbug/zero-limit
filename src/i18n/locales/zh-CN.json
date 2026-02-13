@@ -14,7 +14,13 @@
     "copy": "复制",
     "copied": "已复制！",
     "download": "下载",
-    "upload": "上传"
+    "upload": "上传",
+    "deleteAll": "全部删除",
+    "deleting": "正在删除...",
+    "deleteWarning": "此操作无法撤销。这将永久删除您的帐户连接。",
+    "copyRefreshToken": "复制刷新令牌",
+    "copyAll": "全部复制",
+    "copying": "正在复制..."
   },
   "auth": {
     "login": "登录",
@@ -67,7 +73,13 @@
     "openLink": "打开链接",
     "verify": "验证",
     "manualCallback": "如果未自动检测到回调：",
-    "authSuccess": "提供商连接成功！"
+    "authSuccess": "提供商连接成功！",
+    "deleteAllConfirm": "这将永久删除所有连接的帐户。此操作无法撤销。",
+    "deleteAllSuccess": "所有帐户已成功删除",
+    "copyAllTitle": "复制所有刷新令牌",
+    "selectProviders": "选择您要包含在复制中的提供商。",
+    "copySuccess": "刷新令牌已复制到剪贴板",
+    "noTokensFound": "未找到刷新令牌"
   },
   "oauth": {
     "pasteCallback": "在此粘贴回调 URL..."

@@ -59,6 +59,13 @@ export function useProvidersPresenter() {
   const [loadingFiles, setLoadingFiles] = useState(false);
   const [filesError, setFilesError] = useState<string | null>(null);
 
+  const [isDeletingAll, setIsDeletingAll] = useState(false);
+  const [showDeleteAllConfirmation, setShowDeleteAllConfirmation] = useState(false);
+
+  const [showCopyAllModal, setShowCopyAllModal] = useState(false);
+  const [copyingAll, setCopyingAll] = useState(false);
+  const [selectedProvidersForCopy, setSelectedProvidersForCopy] = useState<string[]>([]);
+
   const [providerStates, setProviderStates] = useState<Record<string, ProviderState>>({});
   const [callbackUrl, setCallbackUrl] = useState('');
   const [selectedProvider, setSelectedProvider] = useState<ProviderId | null>(null);
@@ -137,6 +144,84 @@ export function useProvidersPresenter() {
       setFilesError((err as Error).message);
     }
   }, [fileToDelete, loadFiles]);
+
+  const executeDeleteAll = useCallback(async () => {
+    setIsDeletingAll(true);
+    try {
+      await authFilesApi.deleteAll();
+      setShowDeleteAllConfirmation(false);
+      await loadFiles();
+      toast.success(t('providers.deleteAllSuccess') || 'All accounts deleted successfully');
+    } catch (err) {
+      setFilesError((err as Error).message);
+      toast.error((err as Error).message);
+    } finally {
+      setIsDeletingAll(false);
+    }
+  }, [loadFiles, t]);
+
+  const openCopyAllModal = useCallback(() => {
+    const allProviderIds = groupedFiles.map(([id]) => id);
+    setSelectedProvidersForCopy(allProviderIds);
+    setShowCopyAllModal(true);
+  }, [groupedFiles]);
+
+  const toggleCopyProvider = useCallback((providerId: string) => {
+    setSelectedProvidersForCopy(prev => {
+      if (prev.includes(providerId)) {
+        return prev.filter(id => id !== providerId);
+      } else {
+        return [...prev, providerId];
+      }
+    });
+  }, []);
+
+  const executeCopyAll = useCallback(async () => {
+    if (selectedProvidersForCopy.length === 0) return;
+
+    setCopyingAll(true);
+    try {
+      const results: Array<{ provider: string, account: string, refresh_token: string }> = [];
+
+      const filesToProcess = groupedFiles
+        .filter(([id]) => selectedProvidersForCopy.includes(id))
+        .flatMap(([, group]) => group.files);
+
+      for (const file of filesToProcess) {
+        let name = file.name || file.filename || file.id;
+        if (!name) continue;
+        if (!name.toLowerCase().endsWith('.json')) {
+          name = `${name}.json`;
+        }
+
+        try {
+          const data = await authFilesApi.download(name);
+          if (data && data.refresh_token) {
+            results.push({
+              provider: file.provider,
+              account: (file.metadata?.email as string) || (file.account as string) || file.filename,
+              refresh_token: data.refresh_token
+            });
+          }
+        } catch (err) {
+          console.error(`Failed to download ${name}`, err);
+        }
+      }
+
+      if (results.length > 0) {
+        const tokens = results.map(r => r.refresh_token).join('\n');
+        await navigator.clipboard.writeText(tokens);
+        toast.success(t('providers.copySuccess') || 'Refresh tokens copied to clipboard');
+        setShowCopyAllModal(false);
+      } else {
+        toast.warning(t('providers.noTokensFound') || 'No refresh tokens found');
+      }
+    } catch (err) {
+      toast.error(t('common.error') || 'An error occurred');
+    } finally {
+      setCopyingAll(false);
+    }
+  }, [groupedFiles, selectedProvidersForCopy, t]);
 
   const updateProviderState = useCallback((provider: string, update: Partial<ProviderState>) => {
     setProviderStates((prev) => ({
@@ -329,6 +414,30 @@ export function useProvidersPresenter() {
     } catch { /* ignore */ }
   }, [t]);
 
+  const copyRefreshToken = useCallback(async (filename: string | undefined | null) => {
+    try {
+      if (!filename) {
+        toast.error('Filename is missing');
+        return;
+      }
+      let name = filename;
+      if (!name.toLowerCase().endsWith('.json')) {
+        name = `${name}.json`;
+      }
+      const data = await authFilesApi.download(name);
+      const refreshToken = data.refresh_token;
+
+      if (refreshToken) {
+        await navigator.clipboard.writeText(refreshToken);
+        toast.success(t('common.copied') || 'Copied to clipboard!');
+      } else {
+        toast.error('No refresh token found in this file');
+      }
+    } catch (err) {
+      toast.error(`Failed to copy refresh token: ${(err as Error).message}`);
+    }
+  }, [t]);
+
   const togglePrivacyMode = useCallback(() => {
     setIsPrivacyMode(prev => !prev);
   }, []);
@@ -349,6 +458,21 @@ export function useProvidersPresenter() {
     setFileToDelete,
     executeDelete,
 
+    // Delete All
+    isDeletingAll,
+    executeDeleteAll,
+    showDeleteAllConfirmation,
+    setShowDeleteAllConfirmation,
+
+    // Copy All
+    showCopyAllModal,
+    setShowCopyAllModal,
+    copyingAll,
+    selectedProvidersForCopy,
+    openCopyAllModal,
+    toggleCopyProvider,
+    executeCopyAll,
+
     // Add provider (OAuth)
     providerStates,
     selectedProvider,
@@ -362,6 +486,7 @@ export function useProvidersPresenter() {
     submitCallback,
     updateProviderState,
     copyToClipboard,
+    copyRefreshToken,
 
     // Privacy
     isPrivacyMode,

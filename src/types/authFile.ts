@@ -4,6 +4,7 @@
 
 export interface AuthFile {
   id: string;
+  name?: string;
   filename: string;
   provider: string;
   isRuntimeOnly?: boolean;

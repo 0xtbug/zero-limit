@@ -14,7 +14,13 @@
     "copy": "Sao chép",
     "copied": "Đã sao chép!",
     "download": "Tải xuống",
-    "upload": "Tải lên"
+    "upload": "Tải lên",
+    "deleteAll": "Xóa tất cả",
+    "deleting": "Đang xóa...",
+    "deleteWarning": "Hành động này không thể hoàn tác. Việc này sẽ xóa vĩnh viễn kết nối tài khoản của bạn.",
+    "copyRefreshToken": "Sao chép Token làm mới",
+    "copyAll": "Sao chép tất cả",
+    "copying": "Đang sao chép..."
   },
   "auth": {
     "login": "Đăng nhập",
@@ -67,7 +73,13 @@
     "openLink": "Mở liên kết",
     "verify": "Xác minh",
     "manualCallback": "Nếu không tự động phát hiện callback hợp lệ:",
-    "authSuccess": "Kết nối nhà cung cấp thành công!"
+    "authSuccess": "Kết nối nhà cung cấp thành công!",
+    "deleteAllConfirm": "Việc này sẽ xóa vĩnh viễn tất cả các tài khoản đã kết nối. Hành động này không thể hoàn tác.",
+    "deleteAllSuccess": "Đã xóa tất cả tài khoản thành công",
+    "copyAllTitle": "Sao chép tất cả Token làm mới",
+    "selectProviders": "Chọn nhà cung cấp bạn muốn sao chép.",
+    "copySuccess": "Đã sao chép token làm mới vào clipboard",
+    "noTokensFound": "Không tìm thấy token làm mới"
   },
   "oauth": {
     "pasteCallback": "Dán URL callback vào đây..."

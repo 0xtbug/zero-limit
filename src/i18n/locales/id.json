@@ -14,7 +14,13 @@
     "copy": "Salin",
     "copied": "Disalin!",
     "download": "Unduh",
-    "upload": "Unggah"
+    "upload": "Unggah",
+    "deleteAll": "Hapus Semua",
+    "deleting": "Menghapus...",
+    "deleteWarning": "Tindakan ini tidak dapat dibatalkan. Ini akan menghapus koneksi akun Anda secara permanen.",
+    "copyRefreshToken": "Salin Token Penyegaran",
+    "copyAll": "Salin Semua",
+    "copying": "Menyalin..."
   },
   "auth": {
     "login": "Masuk",
@@ -67,7 +73,13 @@
     "openLink": "Buka Tautan",
     "verify": "Verifikasi",
     "manualCallback": "Jika callback valid tidak terdeteksi otomatis:",
-    "authSuccess": "Penyedia berhasil terhubung!"
+    "authSuccess": "Penyedia berhasil terhubung!",
+    "deleteAllConfirm": "Ini akan menghapus semua akun yang terhubung secara permanen. Tindakan ini tidak dapat dibatalkan.",
+    "deleteAllSuccess": "Semua akun berhasil dihapus",
+    "copyAllTitle": "Salin Semua Token Penyegaran",
+    "selectProviders": "Pilih penyedia yang ingin Anda sertakan dalam penyalinan.",
+    "copySuccess": "Token penyegaran disalin ke papan klip",
+    "noTokensFound": "Tidak ada token penyegaran ditemukan"
   },
   "oauth": {
     "pasteCallback": "Tempelkan URL callback di sini..."

@@ -14,7 +14,13 @@
     "copy": "복사",
     "copied": "복사되었습니다!",
     "download": "다운로드",
-    "upload": "업로드"
+    "upload": "업로드",
+    "deleteAll": "모두 삭제",
+    "deleting": "삭제 중...",
+    "deleteWarning": "이 작업은 취소할 수 없습니다. 계정 연결이 영구적으로 삭제됩니다.",
+    "copyRefreshToken": "갱신 토큰 복사",
+    "copyAll": "모두 복사",
+    "copying": "복사 중..."
   },
   "auth": {
     "login": "로그인",
@@ -67,7 +73,13 @@
     "openLink": "링크 열기",
     "verify": "확인",
     "manualCallback": "유효한 콜백이 자동으로 감지되지 않는 경우:",
-    "authSuccess": "제공자가 성공적으로 연결되었습니다!"
+    "authSuccess": "제공자가 성공적으로 연결되었습니다!",
+    "deleteAllConfirm": "연결된 모든 계정이 영구적으로 삭제됩니다. 이 작업은 취소할 수 없습니다.",
+    "deleteAllSuccess": "모든 계정이 성공적으로 삭제되었습니다",
+    "copyAllTitle": "모든 갱신 토큰 복사",
+    "selectProviders": "복사에 포함할 공급자를 선택하세요.",
+    "copySuccess": "갱신 토큰이 클립보드에 복사되었습니다",
+    "noTokensFound": "갱신 토큰을 찾을 수 없습니다"
   },
   "oauth": {
     "pasteCallback": "콜백 URL을 여기에 붙여넣기..."
