@@ -79,7 +79,9 @@ export function useProvidersPresenter() {
     codex: true,
     'gemini-cli': true,
     kiro: true,
-    copilot: true
+    copilot: true,
+    anthropic: true,
+    other: true
   });
 
   const groupedFiles = useMemo(() => {
@@ -88,7 +90,9 @@ export function useProvidersPresenter() {
       codex: { displayName: 'Codex (OpenAI)', files: [], iconInfo: { path: '/openai/openai.png', needsInvert: false } },
       'gemini-cli': { displayName: 'Gemini CLI', files: [], iconInfo: { path: '/gemini/gemini.png', needsInvert: false } },
       kiro: { displayName: 'Kiro (CodeWhisperer)', files: [], iconInfo: { path: '/kiro/kiro.png', needsInvert: false } },
-      copilot: { displayName: 'GitHub Copilot', files: [], iconInfo: { path: '/copilot/copilot.png', needsInvert: true } }
+      copilot: { displayName: 'GitHub Copilot', files: [], iconInfo: { path: '/copilot/copilot.png', needsInvert: true } },
+      anthropic: { displayName: 'Claude (Anthropic)', files: [], iconInfo: { path: '/claude/claude.png', needsInvert: false } },
+      other: { displayName: 'Other', files: [], iconInfo: { path: '', needsInvert: false } }
     };
 
     files.forEach(file => {
@@ -98,6 +102,8 @@ export function useProvidersPresenter() {
       else if (p.includes('gemini')) groups['gemini-cli'].files.push(file);
       else if (p.includes('kiro')) groups.kiro.files.push(file);
       else if (p.includes('copilot') || p.includes('github')) groups.copilot.files.push(file);
+      else if (p.includes('claude') || p.includes('anthropic')) groups.anthropic.files.push(file);
+      else groups.other.files.push(file);
     });
 
     return Object.entries(groups).filter(([, group]) => group.files.length > 0);
