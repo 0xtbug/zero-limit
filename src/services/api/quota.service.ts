@@ -10,6 +10,8 @@ import {
   KIRO_HEADERS,
   COPILOT_ENTITLEMENT_URL,
   COPILOT_HEADERS,
+  CLAUDE_USAGE_URL,
+  CLAUDE_HEADERS,
 } from '@/constants';
 import type {
   AntigravityQuotaResult,
@@ -17,6 +19,7 @@ import type {
   GeminiCliQuotaResult,
   KiroQuotaResult,
   CopilotQuotaResult,
+  ClaudeQuotaResult,
 } from '@/types';
 import {
   parseAntigravityModels,
@@ -24,6 +27,7 @@ import {
   parseGeminiCliQuota,
   parseKiroQuota,
   parseCopilotQuota,
+  parseClaudeUsage,
 } from './parsers';
 
 function formatQuotaError(result: { statusCode: number; body?: unknown; bodyText?: string }): string {
@@ -49,6 +53,29 @@ function formatQuotaError(result: { statusCode: number; body?: unknown; bodyText
 }
 
 export const quotaApi = {
+  async fetchClaude(authIndex: string): Promise<ClaudeQuotaResult> {
+    try {
+      const result = await apiCallApi.request({
+        authIndex,
+        method: 'GET',
+        url: CLAUDE_USAGE_URL,
+        header: { ...CLAUDE_HEADERS }
+      });
+
+      if (result.statusCode >= 200 && result.statusCode < 300) {
+        return parseClaudeUsage(result.body);
+      }
+
+      if (result.statusCode === 401) {
+        return { models: [], error: 'Token expired, please re-authenticate' };
+      }
+
+      return { models: [], error: formatQuotaError(result) };
+    } catch (err) {
+      return { models: [], error: (err as Error).message };
+    }
+  },
+
   async fetchAntigravity(authIndex: string): Promise<AntigravityQuotaResult> {
     let lastError = '';
 

@@ -12,6 +12,12 @@ export interface AntigravityQuotaResult {
   error?: string;
 }
 
+export interface ClaudeQuotaResult {
+  models: QuotaModel[];
+  email?: string;
+  error?: string;
+}
+
 export interface CodexQuotaResult {
   plan?: string;
   limits: Array<{ name: string; percentage: number; resetTime?: string }>;
