@@ -8,6 +8,7 @@ import { SettingsPage } from '@/features/settings/SettingsPage';
 import { ProvidersPage } from '@/features/providers/ProvidersPage';
 import { QuotaPage } from '@/features/quota/QuotaPage';
 import { AboutPage } from '@/features/about/AboutPage';
+import { LogsPage } from '@/features/logs/LogsPage';
 
 const mainRoutes = [
   { path: '/', element: <DashboardPage /> },
@@ -15,6 +16,7 @@ const mainRoutes = [
   { path: '/settings', element: <SettingsPage /> },
   { path: '/providers', element: <ProvidersPage /> },
   { path: '/quota', element: <QuotaPage /> },
+  { path: '/logs', element: <LogsPage /> },
   { path: '/about', element: <AboutPage /> },
   { path: '*', element: <Navigate to="/" replace /> },
 ];

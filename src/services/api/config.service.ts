@@ -44,4 +44,16 @@ export const configApi = {
     );
     return await this.updateConfigYaml(updatedYaml);
   },
+
+  /**
+   * Update logging-to-file setting
+   */
+  async updateLoggingToFile(enabled: boolean): Promise<{ ok: boolean; changed?: string[] }> {
+    const yamlContent = await this.getConfigYaml();
+    const updatedYaml = yamlContent.replace(
+      /^logging-to-file:\s*(true|false)$/m,
+      `logging-to-file: ${enabled}`
+    );
+    return await this.updateConfigYaml(updatedYaml);
+  },
 };
