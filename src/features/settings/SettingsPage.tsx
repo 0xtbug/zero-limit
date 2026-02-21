@@ -12,7 +12,7 @@ import { useConfigStore } from '@/features/settings/config.store';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
 import { Label } from '@/shared/components/ui/label';
-import { Sun, Moon, Monitor, LogOut, Globe, Server, FolderOpen, Play, Square, CheckCircle2, BarChart3, Loader2 } from 'lucide-react';
+import { Sun, Moon, Monitor, LogOut, Globe, Server, FolderOpen, Play, Square, CheckCircle2, BarChart3, Loader2, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 
 export function SettingsPage() {
@@ -21,7 +21,7 @@ export function SettingsPage() {
   const { language, setLanguage } = useLanguageStore();
   const { logout, connectionStatus } = useAuthStore();
   const { exePath, autoStart, runInBackground, isServerRunning, setAutoStart, setRunInBackground, browseForExe, startServer, stopServer } = useCliProxyStore();
-  const { config, fetchConfig, updateUsageStatistics, updatingUsageStats } = useConfigStore();
+  const { config, fetchConfig, updateUsageStatistics, updatingUsageStats, updateLoggingToFile, updatingLogging } = useConfigStore();
 
   useEffect(() => {
     if (connectionStatus === 'connected' && !config) {
@@ -36,6 +36,16 @@ export function SettingsPage() {
       await updateUsageStatistics(!usageStatisticsEnabled);
     } catch {
       toast.error(t('settings.usageStatsError'));
+    }
+  };
+
+  const loggingToFileEnabled = Boolean(config?.['logging-to-file'] ?? false);
+
+  const handleToggleLogging = async () => {
+    try {
+      await updateLoggingToFile(!loggingToFileEnabled);
+    } catch {
+      toast.error(t('logging.error'));
     }
   };
 
@@ -198,6 +208,47 @@ export function SettingsPage() {
                 <span
                   className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
                     usageStatisticsEnabled ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              )}
+            </button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Logging Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            {t('logging.title')}
+          </CardTitle>
+          <CardDescription>{t('logging.description')}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label>{t('logging.enabled')}</Label>
+              <p className="text-xs text-muted-foreground">
+                {t('logging.enabledDesc')}
+              </p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={loggingToFileEnabled}
+              onClick={handleToggleLogging}
+              disabled={updatingLogging || connectionStatus !== 'connected'}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                loggingToFileEnabled ? 'bg-primary' : 'bg-muted'
+              }`}
+            >
+              {updatingLogging ? (
+                <Loader2 className="h-4 w-4 animate-spin mx-auto text-muted-foreground" />
+              ) : (
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    loggingToFileEnabled ? 'translate-x-6' : 'translate-x-1'
                   }`}
                 />
               )}

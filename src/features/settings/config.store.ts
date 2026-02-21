@@ -9,9 +9,11 @@ interface ConfigState {
   error: string | null;
   lastFetch: number;
   updatingUsageStats: boolean;
+  updatingLogging: boolean;
   fetchConfig: (forceRefresh?: boolean) => Promise<Config>;
   clearCache: () => void;
   updateUsageStatistics: (enabled: boolean) => Promise<void>;
+  updateLoggingToFile: (enabled: boolean) => Promise<void>;
 }
 
 let configRequestToken = 0;
@@ -23,6 +25,7 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
   error: null,
   lastFetch: 0,
   updatingUsageStats: false,
+  updatingLogging: false,
 
   fetchConfig: async (forceRefresh = false) => {
     const { lastFetch, config } = get();
@@ -86,6 +89,20 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
       throw error;
     } finally {
       set({ updatingUsageStats: false });
+    }
+  },
+
+  updateLoggingToFile: async (enabled: boolean) => {
+    set({ updatingLogging: true, error: null });
+    try {
+      await configApi.updateLoggingToFile(enabled);
+      const { fetchConfig } = get();
+      await fetchConfig(true);
+    } catch (error: unknown) {
+      set({ error: (error as Error).message || 'Failed to update logging setting' });
+      throw error;
+    } finally {
+      set({ updatingLogging: false });
     }
   },
 }));
