@@ -13,4 +13,8 @@ export const authFilesApi = {
   deleteAll: () => apiClient.delete('/auth-files?all=true'),
 
   download: (name: string) => apiClient.get<any>(`/auth-files/download?name=${encodeURIComponent(name)}`),
+
+  upload: (formData: FormData) => apiClient.post<{ status: string }>('/auth-files', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }),
 };

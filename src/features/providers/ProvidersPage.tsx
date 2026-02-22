@@ -16,7 +16,9 @@ import {
   EyeOff,
   ChevronDown,
   ChevronRight,
-  Key
+  Key,
+  Download,
+  Upload,
 } from 'lucide-react';
 import {
   Dialog,
@@ -68,6 +70,9 @@ export function ProvidersPage() {
     submitCallback,
     updateProviderState,
     copyToClipboard,
+    downloadAuthFile,
+    downloadAllAuthFiles,
+    uploadAuthFile,
     isPrivacyMode,
     togglePrivacyMode,
     openInBrowser,
@@ -173,28 +178,47 @@ export function ProvidersPage() {
                     <CheckCircle className="h-5 w-5" />
                     {t('providers.connectedAccounts')} ({files.length})
                 </h2>
-                {files.length > 0 && (
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={openCopyAllModal}
-                      className="h-8 text-xs"
-                    >
-                      <Key className="mr-2 h-3.5 w-3.5" />
-                      {t('common.copyAll', 'Copy All')}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowDeleteAllConfirmation(true)}
-                      className="h-8 text-xs bg-red-500/10 text-red-500 hover:bg-red-500/20 shadow-none border border-red-500/20"
-                    >
-                      <Trash2 className="mr-2 h-3.5 w-3.5" />
-                      {t('common.deleteAll', 'Delete All')}
-                    </Button>
-                  </div>
-                )}
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={openCopyAllModal}
+                    className="h-8 text-xs"
+                    disabled={files.length === 0}
+                  >
+                    <Key className="mr-2 h-3.5 w-3.5" />
+                    {t('common.copyAll', 'Copy All')}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={downloadAllAuthFiles}
+                    className="h-8 text-xs"
+                    disabled={files.length === 0}
+                  >
+                    <Download className="mr-2 h-3.5 w-3.5" />
+                    {t('providers.downloadAll', 'Download All')}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={uploadAuthFile}
+                    className="h-8 text-xs"
+                  >
+                    <Upload className="mr-2 h-3.5 w-3.5" />
+                    {t('providers.upload', 'Upload')}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowDeleteAllConfirmation(true)}
+                    className="h-8 text-xs bg-red-500/10 text-red-500 hover:bg-red-500/20 shadow-none border border-red-500/20 disabled:opacity-50"
+                    disabled={files.length === 0}
+                  >
+                    <Trash2 className="mr-2 h-3.5 w-3.5" />
+                    {t('common.deleteAll', 'Delete All')}
+                  </Button>
+                </div>
             </div>
 
             {filesError && (
@@ -293,6 +317,15 @@ export function ProvidersPage() {
                                  </div>
 
                                  <div className="flex items-center gap-1">
+                                   <Button
+                                     size="icon"
+                                     variant="ghost"
+                                     className="h-8 w-8 text-primary hover:bg-primary/10 opacity-80 group-hover:opacity-100"
+                                     onClick={() => downloadAuthFile(file.name || file.filename || file.id)}
+                                     title={t('providers.download', 'Download')}
+                                   >
+                                     <Download className="h-4 w-4" />
+                                   </Button>
                                    <Button
                                      size="icon"
                                      variant="ghost"
