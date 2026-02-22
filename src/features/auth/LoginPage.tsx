@@ -4,6 +4,7 @@
 
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { motion } from 'motion/react';
 import { useAuthStore } from '@/features/auth/auth.store';
 import { useCliProxyStore } from '@/features/settings/cliProxy.store';
 import { Button } from '@/shared/components/ui/button';
@@ -55,7 +56,12 @@ export function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.3 }}
+      className="flex min-h-screen items-center justify-center bg-background p-4"
+    >
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 text-center">
           <div className="mb-4 flex justify-center">
@@ -204,6 +210,6 @@ export function LoginPage() {
           </form>
         </CardContent>
       </Card>
-    </div>
+    </motion.div>
   );
 }

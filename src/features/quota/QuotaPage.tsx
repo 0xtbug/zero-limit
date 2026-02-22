@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { motion } from 'motion/react';
 import { Card, CardContent } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
 import { RefreshCw, AlertCircle, Loader2, LayoutGrid, List, Eye, EyeOff } from 'lucide-react';
@@ -28,7 +29,12 @@ export function QuotaPage() {
 
   if (!isAuthenticated) {
     return (
-      <div className="space-y-6">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="space-y-6"
+      >
         <div>
           <h1 className="text-3xl font-bold">{t('quota.title')}</h1>
         </div>
@@ -38,12 +44,17 @@ export function QuotaPage() {
             <p className="text-muted-foreground">{t('quota.connectPrompt')}</p>
           </CardContent>
         </Card>
-      </div>
+      </motion.div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className="space-y-6"
+    >
       {/* Header & Refresh */}
       <div className="flex items-center justify-between">
         <div>
@@ -165,6 +176,6 @@ export function QuotaPage() {
           })}
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }

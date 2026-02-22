@@ -3,6 +3,7 @@
  */
 
 import { useTranslation } from 'react-i18next';
+import { motion } from 'motion/react';
 import { Card } from '@/shared/components/ui/card';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
@@ -22,7 +23,12 @@ export function AboutPage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[80vh] space-y-8">
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.3 }}
+      className="flex flex-col items-center justify-center min-h-[80vh] space-y-8"
+    >
       {/* App Icon & Title */}
       <div className="flex flex-col items-center space-y-4">
         <img
@@ -129,6 +135,6 @@ export function AboutPage() {
       <p className="text-xs text-muted-foreground/50">
         {t('about.copyright')}
       </p>
-    </div>
+    </motion.div>
   );
 }
