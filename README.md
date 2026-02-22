@@ -6,6 +6,7 @@
 A cross-platform AI coding assistant quota tracker
 </p>
 
+
 <p align="center">
   <img src="https://img.shields.io/badge/Platform-Windows%20|%20macOS%20|%20Linux-blue" alt="Platform">
   <img src="https://img.shields.io/badge/Built%20with-Tauri%20%2B%20React-orange" alt="Built with">
@@ -39,7 +40,7 @@ Built with **Tauri + React + Rust**, ZeroLimit runs on **Windows**, **macOS**, a
 | Anthropic Claude | OAuth |
 | OpenAI Codex | OAuth |
 | Antigravity | OAuth |
-| Kirocode | OAuth |
+| Kiro | OAuth |
 | Github Copilot | OAuth |
 
 ## 📦 Installation
@@ -85,6 +86,10 @@ pnpm run tauri build
 ```
 
 ## 📸 Screenshots
+
+### Onboarding
+
+<img src="./screenshots/onboard.png" alt="Dashboard">
 
 ### Dashboard
 
