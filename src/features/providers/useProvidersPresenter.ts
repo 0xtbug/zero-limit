@@ -56,6 +56,12 @@ export function useProvidersPresenter() {
 
   const [fileToDelete, setFileToDelete] = useState<string | null>(null);
   const [files, setFiles] = useState<AuthFile[]>([]);
+  const filesRef = useRef<AuthFile[]>(files);
+
+  useEffect(() => {
+    filesRef.current = files;
+  }, [files]);
+
   const [loadingFiles, setLoadingFiles] = useState(false);
   const [filesError, setFilesError] = useState<string | null>(null);
 
@@ -444,6 +450,113 @@ export function useProvidersPresenter() {
     }
   }, [t]);
 
+  const downloadAuthFile = useCallback(async (filename: string | undefined | null) => {
+    try {
+      if (!filename) throw new Error('Filename is missing');
+      let name = filename;
+      if (!name.toLowerCase().endsWith('.json')) name = `${name}.json`;
+
+      const { save } = await import('@tauri-apps/plugin-dialog');
+      const { writeTextFile } = await import('@tauri-apps/plugin-fs');
+
+      const data = await authFilesApi.download(name);
+
+      const filePath = await save({
+        defaultPath: name,
+        filters: [{ name: 'JSON', extensions: ['json'] }],
+      });
+
+      if (filePath) {
+        await writeTextFile(filePath, JSON.stringify(data, null, 2));
+        toast.success(t('providers.downloadSuccess', 'File downloaded successfully'));
+      }
+    } catch (err) {
+      toast.error(t('providers.downloadFailed', 'Failed to download file') + `: ${(err as Error).message}`);
+    }
+  }, [t]);
+
+  const downloadAllAuthFiles = useCallback(async () => {
+    try {
+      const { open } = await import('@tauri-apps/plugin-dialog');
+      const { writeTextFile } = await import('@tauri-apps/plugin-fs');
+      const { join } = await import('@tauri-apps/api/path');
+
+      const dirPath = await open({
+        directory: true,
+        multiple: false,
+        title: 'Select Destination Folder'
+      });
+
+      if (!dirPath || typeof dirPath !== 'string') return;
+
+      let successCount = 0;
+      const currentFiles = filesRef.current;
+
+      console.log('Downloading all files. Count:', currentFiles.length);
+
+      for (const file of currentFiles) {
+        try {
+          const name = file.name || file.filename || file.id;
+          if (!name) continue;
+
+          let fileName = name;
+          if (!fileName.toLowerCase().endsWith('.json')) fileName = `${fileName}.json`;
+
+          const data = await authFilesApi.download(fileName);
+          const fullPath = await join(dirPath, fileName);
+          await writeTextFile(fullPath, JSON.stringify(data, null, 2));
+          successCount++;
+        } catch (e) {
+          console.error('Failed to download file:', file.id, e);
+        }
+      }
+
+      toast.success(t('providers.downloadSuccess', 'Downloaded {{count}} files successfully', { count: successCount }));
+    } catch (err) {
+      toast.error(t('providers.downloadFailed', 'Failed to download files') + `: ${(err as Error).message}`);
+    }
+  }, [t]);
+
+  const uploadAuthFile = useCallback(async () => {
+    try {
+      const { open } = await import('@tauri-apps/plugin-dialog');
+      const { readTextFile } = await import('@tauri-apps/plugin-fs');
+      const { basename } = await import('@tauri-apps/api/path');
+
+      const filePaths = await open({
+        multiple: true,
+        filters: [{ name: 'JSON', extensions: ['json'] }],
+      });
+
+      if (!filePaths || filePaths.length === 0) return;
+      const paths = Array.isArray(filePaths) ? filePaths : [filePaths];
+
+      let uploads = 0;
+      for (const path of paths) {
+        try {
+          const content = await readTextFile(path);
+          const name = await basename(path);
+
+          const blob = new Blob([content], { type: 'application/json' });
+          const formData = new FormData();
+          formData.append('file', blob, name);
+
+          await authFilesApi.upload(formData);
+          uploads++;
+        } catch (e) {
+          console.error('Failed to upload file:', path, e);
+        }
+      }
+
+      if (uploads > 0) {
+        toast.success(t('providers.uploadSuccess', 'Files uploaded successfully'));
+        loadFiles();
+      }
+    } catch (err) {
+      toast.error(t('providers.uploadFailed', 'Failed to upload files') + `: ${(err as Error).message}`);
+    }
+  }, [t, loadFiles]);
+
   const togglePrivacyMode = useCallback(() => {
     setIsPrivacyMode(prev => !prev);
   }, []);
@@ -493,6 +606,9 @@ export function useProvidersPresenter() {
     updateProviderState,
     copyToClipboard,
     copyRefreshToken,
+    downloadAuthFile,
+    downloadAllAuthFiles,
+    uploadAuthFile,
 
     // Privacy
     isPrivacyMode,
