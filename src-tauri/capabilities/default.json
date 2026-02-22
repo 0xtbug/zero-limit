@@ -11,7 +11,13 @@
     "updater:default",
     "process:allow-restart",
     "fs:default",
-    "fs:allow-read-text-file",
-    "fs:allow-write-text-file"
+    {
+      "identifier": "fs:allow-read-text-file",
+      "allow": [{ "path": "$HOME/.zerolimit/**" }, { "path": "$HOME/.cli-proxy-api/**" }, { "path": "**" }]
+    },
+    {
+      "identifier": "fs:allow-write-text-file",
+      "allow": [{ "path": "$HOME/.zerolimit/**" }, { "path": "$HOME/.cli-proxy-api/**" }, { "path": "**" }]
+    }
   ]
 }
