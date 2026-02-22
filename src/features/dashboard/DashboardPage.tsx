@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { motion } from 'motion/react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
 import {
@@ -59,7 +60,12 @@ export function DashboardPage() {
   } = useDashboardPresenter();
 
   return (
-    <div className="space-y-6 animate-fade-in p-2">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className="space-y-6 p-2"
+    >
       {/* Header Section */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex flex-col gap-1">
@@ -697,6 +703,6 @@ export function DashboardPage() {
             </>
           )}
         </div>
-    </div>
+    </motion.div>
   );
 }

@@ -4,6 +4,7 @@
 
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { motion } from 'motion/react';
 import { useThemeStore } from '@/features/settings/theme.store';
 import { useLanguageStore } from '@/features/settings/language.store';
 import { useAuthStore } from '@/features/auth/auth.store';
@@ -80,7 +81,12 @@ export function SettingsPage() {
   ] as const;
 
   return (
-    <div className="space-y-6">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className="space-y-6"
+    >
       <div>
         <h1 className="text-3xl font-bold">{t('settings.title')}</h1>
       </div>
@@ -399,6 +405,6 @@ export function SettingsPage() {
           </Button>
         </CardContent>
       </Card>
-    </div>
+    </motion.div>
   );
 }

@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { motion } from 'motion/react';
 import { PROVIDERS } from '@/constants';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
@@ -94,7 +95,12 @@ export function ProvidersPage() {
 
   if (!isAuthenticated) {
      return (
-      <div className="space-y-6">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="space-y-6"
+      >
         <div>
           <h1 className="text-3xl font-bold">{t('providers.title', 'Providers')}</h1>
         </div>
@@ -104,12 +110,17 @@ export function ProvidersPage() {
             <p className="text-muted-foreground">{t('providers.connectPrompt')}</p>
           </CardContent>
         </Card>
-      </div>
+      </motion.div>
     );
   }
 
   return (
-    <div className="space-y-8">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className="space-y-8"
+    >
         <AlertDialog open={!!fileToDelete} onOpenChange={(open) => !open && setFileToDelete(null)}>
         <AlertDialogContent className="border-border/50">
           <AlertDialogHeader>
@@ -590,6 +601,6 @@ export function ProvidersPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </motion.div>
   );
 }
