@@ -12,7 +12,7 @@ import { useConfigStore } from '@/features/settings/config.store';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
 import { Label } from '@/shared/components/ui/label';
-import { Sun, Moon, Monitor, LogOut, Globe, Server, FolderOpen, Play, Square, CheckCircle2, BarChart3, Loader2, FileText } from 'lucide-react';
+import { Sun, Moon, Monitor, LogOut, Globe, Server, FolderOpen, Play, Square, CheckCircle2, BarChart3, Loader2, FileText, RefreshCw, Download } from 'lucide-react';
 import { toast } from 'sonner';
 
 export function SettingsPage() {
@@ -20,7 +20,13 @@ export function SettingsPage() {
   const { theme, setTheme } = useThemeStore();
   const { language, setLanguage } = useLanguageStore();
   const { logout, connectionStatus } = useAuthStore();
-  const { exePath, autoStart, runInBackground, isServerRunning, setAutoStart, setRunInBackground, browseForExe, startServer, stopServer } = useCliProxyStore();
+  const {
+    exePath, autoStart, runInBackground, isServerRunning,
+    setAutoStart, setRunInBackground, browseForExe, startServer, stopServer,
+    cliProxyLatestVersion, latestRemoteVersion, updateAvailable,
+    isCheckingUpdate, isUpdating, checkForProxyUpdate, updateProxy,
+    currentInstalledVersion, serverBuildDate,
+  } = useCliProxyStore();
   const { config, fetchConfig, updateUsageStatistics, updatingUsageStats, updateLoggingToFile, updatingLogging } = useConfigStore();
 
   useEffect(() => {
@@ -47,6 +53,14 @@ export function SettingsPage() {
     } catch {
       toast.error(t('logging.error'));
     }
+  };
+
+  const formatBuildDate = (dateStr: string | null) => {
+    if (!dateStr) return null;
+    try {
+      const d = new Date(dateStr);
+      return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+    } catch { return dateStr; }
   };
 
   const themeOptions = [
@@ -172,6 +186,74 @@ export function SettingsPage() {
               )
             )}
           </div>
+
+          {/* Version & Update */}
+          {exePath && (
+            <div className="space-y-3 pt-2 border-t">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label>{t('cliProxy.version', 'Version')}</Label>
+                  <p className="text-xs text-muted-foreground">
+                    {currentInstalledVersion ? `v${currentInstalledVersion}` : (cliProxyLatestVersion || 'Unknown')}
+                    {serverBuildDate && (
+                      <span className="ml-1 opacity-60">({formatBuildDate(serverBuildDate)})</span>
+                    )}
+                    {latestRemoteVersion && updateAvailable && (
+                      <span className="ml-2 text-green-500">&rarr; {latestRemoteVersion}</span>
+                    )}
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  {updateAvailable ? (
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={async () => {
+                        try {
+                          toast.info('Updating CLI Proxy...');
+                          await updateProxy();
+                          toast.success('CLI Proxy updated and restarted!');
+                        } catch (err: any) {
+                          toast.error(`Update failed: ${err?.message || 'Unknown error'}`);
+                        }
+                      }}
+                      disabled={isUpdating}
+                    >
+                      {isUpdating ? (
+                        <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Updating...</>
+                      ) : (
+                        <><Download className="mr-2 h-4 w-4" />Update Now</>
+                      )}
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={async () => {
+                        try {
+                          const hasUpdate = await checkForProxyUpdate();
+                          if (hasUpdate) {
+                            toast.success('Update available!');
+                          } else {
+                            toast.info('Already on the latest version.');
+                          }
+                        } catch (err: any) {
+                          toast.error(`Update check failed: ${err?.message || 'Unknown error'}`);
+                        }
+                      }}
+                      disabled={isCheckingUpdate}
+                    >
+                      {isCheckingUpdate ? (
+                        <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Checking...</>
+                      ) : (
+                        <><RefreshCw className="mr-2 h-4 w-4" />Check for Update</>
+                      )}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 

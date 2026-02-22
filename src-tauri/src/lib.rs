@@ -9,9 +9,7 @@ mod tray;
 
 use commands::*;
 
-/// Cleanup function to stop proxy on app exit
 fn cleanup_on_exit() {
-    // Kill any running CLI proxy process
     if let Ok(mut guard) = state::CLI_PROXY_PROCESS.lock() {
         if let Some(ref mut child) = *guard {
             #[cfg(windows)]
@@ -37,10 +35,8 @@ fn cleanup_on_exit() {
         *guard = None;
     }
 
-    // Fallback: kill by name if available (catches detached processes/launchers)
     if let Ok(mut name_guard) = state::CLI_PROXY_NAME.lock() {
         if let Some(ref name) = *name_guard {
-            // Safety: Only kill if name looks like our proxy to avoid collateral damage
             if name.to_lowercase().contains("cliproxy") {
                 #[cfg(windows)]
                 {
@@ -75,6 +71,7 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_process::init())
+        .plugin(tauri_plugin_os::init())
         .setup(|app| {
             #[cfg(desktop)]
             {
@@ -98,6 +95,8 @@ pub fn run() {
             start_cli_proxy,
             stop_cli_proxy,
             is_cli_proxy_running,
+            download_and_extract_proxy,
+            check_proxy_version,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")
