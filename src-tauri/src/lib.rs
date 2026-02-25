@@ -97,6 +97,9 @@ pub fn run() {
             is_cli_proxy_running,
             download_and_extract_proxy,
             check_proxy_version,
+            github_request_device_code,
+            github_poll_token,
+            github_fetch_user_info,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/features/auth/auth.store';
 import { authFilesApi } from '@/services/api/auth.service';
 import { oauthApi } from '@/services/api/oauth.service';
+import * as copilotService from '@/services/api/copilot.service';
 import { useHeaderRefresh } from '@/shared/hooks';
 import { AuthFile, type ProviderId } from '@/types';
 import { openExternalUrl, isTauri } from '@/services/tauri';
@@ -319,50 +320,52 @@ export function useProvidersPresenter() {
         return;
       }
 
-      // Copilot uses device code flow via backend
+      // Copilot: device flow handled entirely in the frontend.
+      // Works with base CLIProxyAPI (no /github-auth-url needed).
       if (providerId === 'copilot') {
+        // AbortController so cancel() can interrupt the polling loop.
+        const abortController = new AbortController();
+        (pollingTimers.current as unknown as Record<string, AbortController>)[`${providerId}_abort`] = abortController;
+
         try {
-          const response = await oauthApi.startAuth('copilot');
-          const url = response.url || response.verification_uri;
-          const state = response.state;
-          const userCode = response.user_code;
+          // Step 1: get device code
+          const deviceCode = await copilotService.requestDeviceCode();
 
-          if (!url) throw new Error('No verification URL returned from server');
+          updateProviderState(providerId, {
+            status: 'polling',
+            url: deviceCode.verification_uri,
+            userCode: deviceCode.user_code,
+          });
 
-          updateProviderState(providerId, { status: 'polling', url, state, userCode });
-          await openInBrowser(url);
+          // Step 2: open GitHub verification page in browser
+          await openInBrowser(deviceCode.verification_uri);
 
-          if (state) {
-            startPolling(providerId, state);
-          } else {
-            const initialFiles = files.filter(f =>
-              f.provider?.toLowerCase().includes('github') ||
-              f.filename?.toLowerCase().includes('github')
-            );
-            const initialCount = initialFiles.length;
-
-            const pollTimer = window.setInterval(async () => {
+          // Step 3: poll for token (runs asynchronously so UI stays responsive)
+          copilotService
+            .pollForToken(deviceCode, abortController.signal)
+            .then(async (tokenData) => {
+              // Step 4: fetch user profile
+              let userInfo: copilotService.CopilotUserInfo = { login: '', email: null, name: null };
               try {
-                const listResponse = await authFilesApi.list();
-                const currentFiles = listResponse?.files ?? [];
-                const currentGithubFiles = currentFiles.filter(f =>
-                  f.provider?.toLowerCase().includes('github') ||
-                  f.filename?.toLowerCase().includes('github')
-                );
-
-                if (currentGithubFiles.length > initialCount) {
-                  updateProviderState(providerId, { status: 'success' });
-                  toast.success(t('providers.authSuccess') || 'Provider connected successfully!');
-                  stopPolling(providerId);
-                  setSelectedProvider(null);
-                  setFiles(currentFiles);
-                }
-              } catch {
-                // Ignore polling errors
+                userInfo = await copilotService.fetchUserInfo(tokenData.access_token);
+              } catch (e) {
+                console.warn('Copilot: failed to fetch user info:', e);
               }
-            }, 3000);
-            pollingTimers.current[providerId] = pollTimer;
-          }
+
+              // Step 5: build & upload auth file
+              const { storage, fileName } = copilotService.buildTokenStorage(tokenData, userInfo);
+              await copilotService.uploadTokenFile(storage, fileName, authFilesApi.upload.bind(authFilesApi));
+
+              updateProviderState(providerId, { status: 'success' });
+              toast.success(t('providers.authSuccess') || 'Provider connected successfully!');
+              setSelectedProvider(null);
+              loadFiles();
+            })
+            .catch((err: Error) => {
+              if (err.message === 'Authentication cancelled') return;
+              updateProviderState(providerId, { status: 'error', error: err.message });
+              toast.error(err.message);
+            });
         } catch (err) {
           const errorMsg = (err as Error).message;
           updateProviderState(providerId, { status: 'error', error: errorMsg });
@@ -393,6 +396,13 @@ export function useProvidersPresenter() {
 
   const cancelAuth = useCallback((providerId: ProviderId) => {
     stopPolling(providerId);
+    // Abort Copilot device flow polling if active
+    const abortKey = `${providerId}_abort`;
+    const abortCtrl = (pollingTimers.current as unknown as Record<string, AbortController>)[abortKey];
+    if (abortCtrl) {
+      abortCtrl.abort();
+      delete (pollingTimers.current as unknown as Record<string, AbortController>)[abortKey];
+    }
     updateProviderState(providerId, { status: 'idle' });
     if (selectedProvider === providerId) {
       setSelectedProvider(null);
