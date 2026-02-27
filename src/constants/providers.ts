@@ -13,6 +13,8 @@ export type ProviderId = typeof PROVIDERS[number]['id'];
 
 export const WEBUI_SUPPORTED: OAuthProvider[] = ['codex', 'anthropic', 'antigravity', 'gemini-cli', 'kiro'];
 
+export const PLUS_ONLY_PROVIDERS: ProviderId[] = ['copilot', 'kiro'];
+
 export const CALLBACK_PROVIDER_MAP: Partial<Record<OAuthProvider, string>> = {
   'gemini-cli': 'gemini'
 };

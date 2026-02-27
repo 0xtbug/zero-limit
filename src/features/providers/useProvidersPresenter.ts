@@ -7,6 +7,32 @@ import { useHeaderRefresh } from '@/shared/hooks';
 import { AuthFile, type ProviderId } from '@/types';
 import { openExternalUrl, isTauri } from '@/services/tauri';
 import { toast } from 'sonner';
+import { PLUS_ONLY_PROVIDERS } from '@/constants';
+import { useCliProxyStore } from '@/features/settings/cliProxy.store';
+
+export function detectIsPlusVersion(serverVersion: string | null | undefined): boolean | null {
+  if (!serverVersion) return null;
+  const cleaned = serverVersion.trim().replace(/^v/i, '');
+  if (!cleaned) return null;
+  return /-/.test(cleaned);
+}
+
+export function checkIsNonPlusServer(): boolean {
+  const { serverVersion } = useAuthStore.getState();
+  const fromServerVersion = detectIsPlusVersion(serverVersion);
+  if (fromServerVersion !== null) return !fromServerVersion;
+
+  const { currentInstalledVersion, cliProxyVersion, exePath } = useCliProxyStore.getState();
+  const fromInstalledVersion = detectIsPlusVersion(currentInstalledVersion);
+  if (fromInstalledVersion !== null) return !fromInstalledVersion;
+
+  if (cliProxyVersion === 'plus') return false;
+  if (cliProxyVersion === 'standard') return true;
+
+  if (exePath && exePath.toLowerCase().includes('plus')) return false;
+
+  return false;
+}
 
 export type ProviderStatus = 'idle' | 'waiting' | 'polling' | 'success' | 'error';
 
@@ -276,6 +302,12 @@ export function useProvidersPresenter() {
   }, [stopPolling, loadFiles, updateProviderState, t]);
 
   const startAuth = useCallback(async (providerId: ProviderId, options?: { projectId?: string }) => {
+    // Block plus-only providers when using standard (non-plus) CLIProxyAPI
+    if (PLUS_ONLY_PROVIDERS.includes(providerId) && checkIsNonPlusServer()) {
+      toast.error(t('providers.plusOnly', 'This provider requires CLIProxyAPI Plus version'));
+      return;
+    }
+
     stopPolling(providerId);
     updateProviderState(providerId, { status: 'waiting', error: undefined });
     setSelectedProvider(providerId);
@@ -319,7 +351,6 @@ export function useProvidersPresenter() {
         return;
       }
 
-      // Copilot uses device code flow via backend
       if (providerId === 'copilot') {
         try {
           const response = await oauthApi.startAuth('copilot');
@@ -561,8 +592,27 @@ export function useProvidersPresenter() {
     setIsPrivacyMode(prev => !prev);
   }, []);
 
+  // Auto-detect Plus version from multiple sources
+  const { serverVersion } = useAuthStore();
+  const { currentInstalledVersion, cliProxyVersion, exePath } = useCliProxyStore();
+  const isNonPlusServer = useMemo(() => {
+    // Check serverVersion (from API response headers)
+    const fromServer = detectIsPlusVersion(serverVersion);
+    if (fromServer !== null) return !fromServer;
+    // Check currentInstalledVersion (from update check)
+    const fromInstalled = detectIsPlusVersion(currentInstalledVersion);
+    if (fromInstalled !== null) return !fromInstalled;
+    // Check explicit cliProxyVersion
+    if (cliProxyVersion === 'plus') return false;
+    if (cliProxyVersion === 'standard') return true;
+    // Check exe path
+    if (exePath && exePath.toLowerCase().includes('plus')) return false;
+    return false;
+  }, [serverVersion, currentInstalledVersion, cliProxyVersion, exePath]);
+
   return {
     isAuthenticated,
+    isNonPlusServer,
 
     // Connected accounts
     files,
