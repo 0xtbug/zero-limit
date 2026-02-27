@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { motion } from 'motion/react';
-import { PROVIDERS } from '@/constants';
+import { PROVIDERS, PLUS_ONLY_PROVIDERS } from '@/constants';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
 import { Badge } from '@/shared/components/ui/badge';
@@ -20,6 +20,7 @@ import {
   Key,
   Download,
   Upload,
+  Lock,
 } from 'lucide-react';
 import {
   Dialog,
@@ -50,6 +51,7 @@ export function ProvidersPage() {
   const { t } = useTranslation();
   const {
     isAuthenticated,
+    isNonPlusServer,
     files,
     loadingFiles,
     filesError,
@@ -531,6 +533,12 @@ export function ProvidersPage() {
                                  <span className="font-medium">{provider.name}</span>
                                  {provider.requiresProjectId && (
                                     <Badge variant="outline" className="text-[10px] h-5">Project ID</Badge>
+                                 )}
+                                 {isNonPlusServer && PLUS_ONLY_PROVIDERS.includes(provider.id) && (
+                                    <Badge variant="outline" className="text-[10px] h-5 border-amber-500/50 text-amber-500 flex items-center gap-1">
+                                      <Lock className="h-3 w-3" />
+                                      Plus
+                                    </Badge>
                                  )}
                              </div>
 
