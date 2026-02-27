@@ -42,6 +42,7 @@ interface CliProxyState {
   serverBuildDate: string | null;
   isCheckingUpdate: boolean;
   isUpdating: boolean;
+  isSwitchingVersion: boolean;
   updateAvailable: boolean;
   latestRemoteVersion: string | null;
   setExePath: (path: string | null) => void;
@@ -58,6 +59,7 @@ interface CliProxyState {
   checkApiHealth: (apiBase?: string) => Promise<boolean>;
   checkForProxyUpdate: () => Promise<boolean>;
   updateProxy: () => Promise<boolean>;
+  switchVersion: () => Promise<boolean>;
 }
 
 export const useCliProxyStore = create<CliProxyState>()(
@@ -77,6 +79,7 @@ export const useCliProxyStore = create<CliProxyState>()(
       serverBuildDate: null,
       isCheckingUpdate: false,
       isUpdating: false,
+      isSwitchingVersion: false,
       updateAvailable: false,
       latestRemoteVersion: null,
 
@@ -295,6 +298,87 @@ export const useCliProxyStore = create<CliProxyState>()(
           throw err;
         } finally {
           set({ isUpdating: false });
+        }
+      },
+
+      switchVersion: async () => {
+        const { exePath, isServerRunning } = get();
+        if (!exePath) throw new Error('No executable path configured.');
+
+        set({ isSwitchingVersion: true });
+        try {
+          const currentIsPlus = exePath.toLowerCase().includes('plus');
+          const targetVersion = currentIsPlus ? 'standard' : 'plus';
+
+          if (isServerRunning) {
+            await get().stopServer();
+          }
+
+          // Force-kill any remaining CLI proxy process by exe name
+          const exeName = exePath.split(/[\\/]/).pop() || '';
+          if (exeName) {
+            try {
+              const { Command } = await import('@tauri-apps/plugin-shell');
+              await Command.create('taskkill', ['/F', '/T', '/IM', exeName]).execute();
+            } catch { /* ignore if already dead */ }
+          }
+          await new Promise(r => setTimeout(r, 2000));
+          const existingExe = await invoke<string | null>('find_alternate_proxy_exe', {
+            currentExePath: exePath,
+            targetVersion,
+          });
+
+          if (existingExe) {
+            set({
+              exePath: existingExe,
+              cliProxyVersion: targetVersion === 'plus' ? 'plus' : 'standard',
+            });
+            await get().startServer();
+            return true;
+          }
+
+          const repo = targetVersion === 'plus' ? 'CLIProxyAPIPlus' : 'CLIProxyAPI';
+          const res = await fetch(`https://api.github.com/repos/router-for-me/${repo}/releases/latest`, {
+            headers: { 'User-Agent': 'CLIProxyAPI' },
+          });
+          if (!res.ok) throw new Error('Failed to fetch release from GitHub');
+          const data = await res.json();
+
+          const { type } = await import('@tauri-apps/plugin-os');
+          const osType = await type();
+          let osName = 'windows';
+          if (osType === 'macos') osName = 'darwin';
+          if (osType === 'linux') osName = 'linux';
+          const searchString = `${osName}_`;
+          const asset = data.assets?.find((a: any) =>
+            a.name.toLowerCase().includes(searchString) &&
+            (a.name.endsWith('.zip') || a.name.endsWith('.tar.gz') || a.name.endsWith('.tgz'))
+          );
+          if (!asset?.browser_download_url) throw new Error('No compatible asset found for your OS');
+
+          const sep = exePath.includes('\\') ? '\\' : '/';
+          const lastSep = exePath.lastIndexOf(sep);
+          const targetDir = lastSep > 0 ? exePath.substring(0, lastSep) : null;
+
+          const newExePath = await invoke<string>('download_and_extract_proxy', {
+            url: asset.browser_download_url,
+            targetDir,
+          });
+
+          if (newExePath) {
+            set({
+              exePath: newExePath,
+              cliProxyVersion: targetVersion === 'plus' ? 'plus' : 'standard',
+            });
+          }
+
+          await get().startServer();
+          return true;
+        } catch (err) {
+          console.error('Version switch failed:', err);
+          throw err;
+        } finally {
+          set({ isSwitchingVersion: false });
         }
       },
     }),

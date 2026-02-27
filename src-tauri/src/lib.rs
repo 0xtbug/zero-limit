@@ -96,6 +96,7 @@ pub fn run() {
             stop_cli_proxy,
             is_cli_proxy_running,
             download_and_extract_proxy,
+            find_alternate_proxy_exe,
             check_proxy_version,
         ])
         .build(tauri::generate_context!())
