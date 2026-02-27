@@ -13,7 +13,7 @@ import { useConfigStore } from '@/features/settings/config.store';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
 import { Label } from '@/shared/components/ui/label';
-import { Sun, Moon, Monitor, LogOut, Globe, Server, FolderOpen, Play, Square, CheckCircle2, BarChart3, Loader2, FileText, RefreshCw, Download } from 'lucide-react';
+import { Sun, Moon, Monitor, LogOut, Globe, Server, FolderOpen, Play, Square, CheckCircle2, BarChart3, Loader2, FileText, RefreshCw, Download, ArrowLeftRight } from 'lucide-react';
 import { toast } from 'sonner';
 
 export function SettingsPage() {
@@ -25,7 +25,7 @@ export function SettingsPage() {
     exePath, autoStart, runInBackground, isServerRunning,
     setAutoStart, setRunInBackground, browseForExe, startServer, stopServer,
     cliProxyLatestVersion, latestRemoteVersion, updateAvailable,
-    isCheckingUpdate, isUpdating, checkForProxyUpdate, updateProxy,
+    isCheckingUpdate, isUpdating, isSwitchingVersion, checkForProxyUpdate, updateProxy, switchVersion,
     currentInstalledVersion, serverBuildDate,
   } = useCliProxyStore();
   const { config, fetchConfig, updateUsageStatistics, updatingUsageStats, updateLoggingToFile, updatingLogging } = useConfigStore();
@@ -257,6 +257,43 @@ export function SettingsPage() {
                     </Button>
                   )}
                 </div>
+              </div>
+
+              {/* Version Switch */}
+              <div className="flex items-center justify-between pt-2 border-t">
+                <div className="space-y-0.5">
+                  <Label>Switch Version</Label>
+                  <p className="text-xs text-muted-foreground">
+                    {exePath?.toLowerCase().includes('plus')
+                      ? 'Currently using Plus version'
+                      : 'Currently using Standard version'
+                    }
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={async () => {
+                    try {
+                      const targetLabel = exePath?.toLowerCase().includes('plus') ? 'Standard' : 'Plus';
+                      toast.info(`Switching to ${targetLabel} version...`);
+                      await switchVersion();
+                      toast.success(`Switched to ${targetLabel} version!`);
+                    } catch (err: any) {
+                      toast.error(`Switch failed: ${err?.message || 'Unknown error'}`);
+                    }
+                  }}
+                  disabled={isSwitchingVersion || isUpdating}
+                >
+                  {isSwitchingVersion ? (
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Switching...</>
+                  ) : (
+                    <>
+                      <ArrowLeftRight className="mr-2 h-4 w-4" />
+                      {exePath?.toLowerCase().includes('plus') ? 'Switch to Standard' : 'Switch to Plus'}
+                    </>
+                  )}
+                </Button>
               </div>
             </div>
           )}
